@@ -71,6 +71,9 @@ pip install tkinterdnd2
 ## 使い方
 
 1. `jubeat2sm_gui.py` を実行します。
+
+<img width="702" height="782" alt="Image" src="https://github.com/user-attachments/assets/aaeb95c6-68c8-4c41-8c4d-f62dee4072cc" />
+
 2. jubeat 譜面のテキストファイル（`.txt`）を
 
    * ウィンドウにドラッグ＆ドロップする
