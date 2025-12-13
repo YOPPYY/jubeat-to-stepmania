@@ -72,17 +72,18 @@ pip install tkinterdnd2
 
 1. `jubeat2sm_gui.py` を実行します。
 
-<img width="702" height="782" alt="Image" src="https://github.com/user-attachments/assets/aaeb95c6-68c8-4c41-8c4d-f62dee4072cc" />
+<img width="702" height="782" alt="Image" src="https://github.com/user-attachments/assets/603c9595-1aad-49ae-8007-92e9d78ebd55" />
 
 2. jubeat 譜面のテキストファイル（`.txt`）を
 
    * ウィンドウにドラッグ＆ドロップする
    * または「ファイルを選択」ボタンから開く
-3. 画面上の各項目を設定します。
 
+3. 画面上の各項目を設定します。
+<img width="702" height="782" alt="Image" src="https://github.com/user-attachments/assets/aaeb95c6-68c8-4c41-8c4d-f62dee4072cc" />
    * **TITLE / MUSIC** : ファイル名から自動入力
    * **BPM** : 曲のテンポ（デフォルト: 100）
-   * **Diff / Level** : 難易度名とレベル数値（デフォルト: 1）
+   * **Diff / Level** : 難易度名とレベル数値（デフォルト: Hard/1）
 4. 「結果を保存」ボタンを押して `.sm` ファイルを書き出します。
 
 ---
