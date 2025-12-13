@@ -4,7 +4,7 @@ jubeat の創作譜面データ（テキスト形式／jubeatmemo）を、StepMa
 
 jubeat の **縦 4 列**を、StepMania の **4 レーン（Left / Down / Up / Right）**にマッピングして出力します。
 
-https://github.com/YOPPYY/jubeat-to-stepmania/blob/main/image.png
+<img width="2112" height="2016" alt="Image" src="https://github.com/user-attachments/assets/db0e7b25-45a3-44ab-a584-c8952294808e" />
 
 ---
 
