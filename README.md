@@ -80,7 +80,8 @@ pip install tkinterdnd2
    * または「ファイルを選択」ボタンから開く
 
 3. 画面上の各項目を設定します。
-<img width="702" height="782" alt="Image" src="https://github.com/user-attachments/assets/aaeb95c6-68c8-4c41-8c4d-f62dee4072cc" />
+   <img width="702" height="782" alt="Image" src="https://github.com/user-attachments/assets/aaeb95c6-68c8-4c41-8c4d-f62dee4072cc" />
+
    * **TITLE / MUSIC** : ファイル名から自動入力
    * **BPM** : 曲のテンポ（デフォルト: 100）
    * **Diff / Level** : 難易度名とレベル数値（デフォルト: Hard/1）
