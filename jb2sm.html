@@ -1089,8 +1089,25 @@ function buildSM(parsed, info, mapping) {
         }
     }
     // ---- .sm テキストを組み立てる ----
-    //   1区間 = 192行。各行は4文字（← ↓ ↑ →）で、0=なし 1=タップ 2=フリーズ始点 3=フリーズ終点
-    const body = rows.map((bar, i) => '// measure ' + (i + 1) + '\n' + bar.map(r => r.join('')).join('\n')).join('\n,\n');
+    //   各行は4文字（← ↓ ↑ →）で、0=なし 1=タップ 2=フリーズ始点 3=フリーズ終点。
+    //   内部では1区間 = 192行で持っているが、書き出すときは区間ごとに必要最小の行数へ詰める。
+    //   ノーツのある行番号すべての最大公約数 g（192 の約数）で間引くと 192/g 行になる。
+    //   例）4分音符だけの区間 → 4行、8分まで → 8行、16分＋24分が混ざる区間 → 48行。行数は4の倍数にそろえる。
+    const compact = bar => {
+        let g = 192;
+        bar.forEach((r, i) => {
+            if (r.some(c => c !== '0')) {
+                g = gcd(g, i);
+            }
+        });
+        let n = 192 / g;
+        while (n % 4) {
+            n *= 2;
+        }
+        const step = 192 / n;
+        return bar.filter((_, i) => i % step === 0);
+    };
+    const body = rows.map((bar, i) => '// measure ' + (i + 1) + '\n' + compact(bar).map(r => r.join('')).join('\n')).join('\n,\n');
     const sm = '#TITLE:' + smEscape(info.title) + ';\n#ARTIST:' + smEscape(info.artist) + ';\n#SUBTITLE:;\n#MUSIC:' + smEscape(info.music) + ';\n#BANNER:' + smEscape(info.banner || '') + ';\n#BACKGROUND:' + smEscape(info.bg || '') + ';\n#OFFSET:' + Number(info.offset) + ';\n#BPMS:' + bpms + ';\n#STOPS:;\n#SAMPLESTART:0;\n#SAMPLELENGTH:10;\n// Original jubeat level: ' + Number(info.level) + '\n// Converted by jb2SM. Hold heads become taps; hold tails omitted.' + (jacks ? '\n// Jack avoidance: ' + jacks + ' runs became freeze arrows.' : '') + (chordMode !== 'off' ? '\n// Chord reduction: ' + chordMode + '.' : '') + '\n#NOTES:\n     dance-single:\n     jubeat memo:\n     ' + info.difficulty + ':\n     ' + Math.round(+info.level) + ':\n     0,0,0,0,0:\n' + body + '\n;\n';
     return { sm, rows, merged, notes, chords, reduced, jacks, bpmList: bpms.split(',').map(p => p.split('=').map(Number)), offset: Number(info.offset) };
 }
