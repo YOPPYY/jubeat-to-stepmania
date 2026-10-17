@@ -2,7 +2,7 @@
 
 **▶ ツールを開く：<https://yoppyy.github.io/jubeat-to-stepmania/jb2sm.html>**
 
-最終更新：2026-10-16
+最終更新：2026-10-17
 
 **jb2SM** は、jubeat の譜面メモ（cosmos memo / sonicy memo などで使われる「memo 形式」）を StepMania の **dance-single（4パネル）用 `.sm` ファイル** に変換するブラウザーツールです。変換結果は、音源に合わせて **StepMania 風レーン** と **jubeat 風 4×4 パネル** で再生して確認できます。
 

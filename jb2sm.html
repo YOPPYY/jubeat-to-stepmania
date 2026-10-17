@@ -48,6 +48,9 @@
     }
     h1 span { color:var(--accent); }
     header .hdr { text-align:right; }
+    .brand h1 { line-height:1.2; }
+    .brand small { display:block; margin-top:4px; line-height:1.3; }
+    header { align-items:flex-end !important; }
     /* 最終更新日：更新したらここ（<time>）の日付を書き換える */
     .updated { color:#c1cada; white-space:nowrap; }
     small, .muted { color:var(--muted); font-size:14px; }
@@ -474,8 +477,11 @@
 <main>
   <!-- ヘッダー（ツール名） -->
   <header>
-    <h1>jb2<span>SM</span></h1>
-    <small class="hdr">jubeat memo → StepMania<br>dance-single / .sm<br><span class="updated">最終更新 <time datetime="2026-10-16">2026-10-16</time></span></small>
+    <div class="brand">
+      <h1>jb2<span>SM</span></h1>
+      <small>jubeat memo → StepMania</small>
+    </div>
+    <small class="hdr"><span class="updated">最終更新 <time datetime="2026-10-17">2026-10-17</time></span></small>
   </header>
   <!-- 入力〜変換のブロック。左に 01、右に 02・03（折りたたみ）と 04 を縦に並べる（CSS の .layout を参照）。狭い画面では1列 -->
   <div class="layout">
