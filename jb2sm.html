@@ -47,6 +47,9 @@
       margin:0;
     }
     h1 span { color:var(--accent); }
+    header .hdr { text-align:right; }
+    /* 最終更新日：更新したらここ（<time>）の日付を書き換える */
+    .updated { color:#c1cada; white-space:nowrap; }
     small, .muted { color:var(--muted); font-size:14px; }
     h2 { font-size:18px; margin:0 0 18px; }
     h2 b {
@@ -61,18 +64,55 @@
       padding:24px;
       margin-bottom:20px;
     }
+    /* 左：01（入力欄は右の列の高さまで伸びる）／右：02・03（折りたたみ）・04 */
     .layout {
       display:grid;
-      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      grid-template-columns:minmax(0,5fr) minmax(0,6fr);
       gap:20px;
       align-items:stretch;
     }
-    .layout>div:last-child { display:contents; }
-    .layout>div:last-child>section:not(:first-child) { grid-column:1/-1; }
-    .layout>div:first-child { display:flex; }
-    .layout>div:first-child>section { flex:1; }
     .layout section { margin-bottom:0; }
-    .layout>div:first-child section { margin-bottom:0; }
+    .colL { display:flex; }
+    .colL>section { flex:1; display:flex; flex-direction:column; }
+    .colL #memo { flex:1; min-height:260px; max-height:72vh; }
+    .colR { display:flex; flex-direction:column; gap:20px; min-width:0; }
+    /* 02・03 の折りたたみ。見出しの右（下）に今の設定の要約を出す */
+    .fold-sec { padding:0; }
+    .fold { margin:0; }
+    .fold>summary {
+      list-style:none;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:baseline;
+      gap:4px 14px;
+      padding:18px 24px 18px 48px;
+      position:relative;
+      border-radius:14px;
+    }
+    .fold>summary::-webkit-details-marker { display:none; }
+    .fold>summary::before {
+      content:'';
+      position:absolute;
+      left:24px;
+      top:26px;
+      border:6px solid transparent;
+      border-left:8px solid var(--accent);
+      transition:transform .15s;
+      transform-origin:3px 6px;
+    }
+    .fold[open]>summary::before { transform:rotate(90deg); }
+    .fold>summary:hover { background:#1d2534; }
+    .fold>summary h2 { margin:0; }
+    .foldSum {
+      flex:1 1 100%;
+      min-width:0;
+      font-size:13px;
+      line-height:1.5;
+      color:var(--muted);
+    }
+    .fold[open] .foldSum { display:none; }
+    .opts .foldSum { font-weight:400; }
+    .foldBody { padding:4px 24px 24px; }
     .row {
       display:flex;
       gap:10px;
@@ -125,6 +165,12 @@
       color:var(--muted);
       font-size:14px;
       margin:9px 0 15px;
+    }
+    .tabs select { width:auto; flex:1 1 160px; min-width:0; }
+    .demo-note {
+      border-left:3px solid var(--accent, #a9f06c);
+      padding-left:10px;
+      color:#dfe6f1;
     }
     .tabs {
       display:flex;
@@ -200,21 +246,23 @@
     .locked .lockNote { display:inline; }
     .summary { width:100%; border-collapse:collapse; margin:4px 0 14px; font-size:14px; }
     .summary th small { font-weight:400; font-size:11px; }
-    .summary th { text-align:right; color:var(--muted); font-weight:600; padding:6px 10px; border-bottom:1px solid var(--line); }
-    .summary td { text-align:right; padding:8px 10px; border-bottom:1px solid #222b38; font:600 18px monospace; color:var(--accent); }
+    /* 集計表は列が多いので、はみ出す分だけ横スクロール。見出しは途中で折り返さない */
+    .tscroll { overflow-x:auto; margin:4px 0 14px; }
+    .tscroll .summary { margin:0; }
+    .summary th, .summary td { white-space:nowrap; padding-left:6px; padding-right:6px; }
+    .summary th { text-align:right; color:var(--muted); font-weight:600; font-size:13px; line-height:1.35; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:bottom; }
+    .summary td { text-align:right; padding:8px 10px; border-bottom:1px solid #222b38; font:600 16px monospace; color:var(--accent); }
     .summary th:first-child, .summary td:first-child { text-align:left; }
     .summary td:first-child { font:600 14px system-ui,sans-serif; color:#f0f3f8; }
     .optgrid {
       display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:18px;
-      margin-top:18px;
+      grid-template-columns:minmax(0,1fr);
+      gap:4px;
+      margin-top:4px;
     }
 
     /* ---------- スマホなど狭い画面向けの調整 ---------- */
-    @media(max-width:850px) {
-      .optgrid { grid-template-columns:1fr; }
-    }
+
     .status {
       padding:12px 15px;
       background:#111921;
@@ -358,21 +406,67 @@
     @media(max-width:850px) {
       .pgrid { grid-template-columns:1fr 1fr; }
       .transport .spacer { display:none; }
-      .layout { grid-template-columns:1fr; }
+      .layout { grid-template-columns:minmax(0,1fr); }
+      .colR { gap:14px; }
+      section { min-width:0; }
+      /* 列の多い表は、はみ出す分だけ横スクロールにする */
+      .charts { display:block; overflow-x:auto; white-space:nowrap; }
       main { padding:20px 16px; }
       header { align-items:flex-start; gap:15px; }
-      header small { max-width:135px; }
+      header small { max-width:none; }
       section { padding:19px; }
     }
-    @media(max-width:440px) {
-      .pgrid { grid-template-columns:1fr; }
-      .transport:not(.sub) { flex-wrap:wrap; }
+    @media(max-width:600px) {
+      /* スマホ：余白を詰めて、1画面に入る情報を増やす */
+      main { padding:14px 12px; }
+      header { padding-bottom:14px; margin-bottom:16px; align-items:center; }
+      h1 { font-size:24px; }
+      header small { font-size:12px; line-height:1.4; }
+      section { padding:16px 14px; border-radius:12px; }
+      .fold-sec { padding:0; }
+      .fold>summary { padding:14px 14px 14px 36px; }
+      .fold>summary::before { left:14px; top:21px; }
+      .foldBody { padding:2px 14px 16px; }
+      .layout { gap:14px; margin-bottom:14px; }
+      section { margin-bottom:14px; }
+      h2 { margin-bottom:12px; }
+      .hint { font-size:13px; margin:6px 0 12px; }
+      textarea#memo { height:240px; }
+      input, textarea, select, button, .button { padding:9px 10px; }
+      /* 曲情報：BPM と OFFSET は横に並べ、ほかは全幅 */
+      .fields { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
+      .wide { grid-column:1/-1; }
+      .row { flex-wrap:nowrap; gap:8px; }
+      .row>*:first-child { flex:1 1 auto; min-width:0; }
+      .charts select { min-width:150px; }
+      .summary th, .summary td { padding:6px 8px; }
+      .summary td { font-size:16px; }
+      /* 再生：設定は2列（スライダーだけ半分ずつ）、画面のすぐ下に再生ボタン */
+      .pgrid { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px 14px; }
+      .pgrid>div:nth-child(-n+4), .pgrid>.checks { grid-column:1/-1; }
+      #playerSec { display:flex; flex-direction:column; }
+      #playerSec>* { order:0; }
+      #playerSec>.stage { order:1; margin-top:10px; }
+      #playerSec>.transport { order:2; }
+      #playerSec>.transport.sub { order:3; }
+      #playerSec>.hint:last-child { order:4; }
+      .transport:not(.sub) { flex-wrap:wrap; margin:12px 0 6px; }
       .transport #seek { order:3; flex-basis:100%; }
       #ptime { min-width:0; margin-left:auto; }
-      .fields { grid-template-columns:1fr; }
-      .wide { grid-column:auto; }
-      .row { flex-wrap:wrap; }
-      .row>*:first-child { flex-basis:100%; }
+      #play, #stop { flex:1; }
+      .transport.sub { gap:8px; }
+      #popout { display:none; }
+      .offbtns button { min-width:0; flex:1; padding:9px 4px; }
+      .offrow { flex-wrap:wrap; }
+      .offrow input { flex:1 1 100%; }
+      .offbtns { flex:1 1 100%; }
+    }
+    /* タッチ端末ではキーボード操作の説明を隠す */
+    @media(hover:none) and (pointer:coarse) {
+      .keyhelp { display:none; }
+    }
+    @media(hover:hover), (pointer:fine) {
+      .touchhelp { display:none; }
     }
   </style>
 </head>
@@ -381,20 +475,21 @@
   <!-- ヘッダー（ツール名） -->
   <header>
     <h1>jb2<span>SM</span></h1>
-    <small>jubeat memo → StepMania<br>dance-single / .sm</small>
+    <small class="hdr">jubeat memo → StepMania<br>dance-single / .sm<br><span class="updated">最終更新 <time datetime="2026-10-16">2026-10-16</time></span></small>
   </header>
-  <!-- 入力〜変換のブロック。1行目に 01・02 を並べ、03・04 はその下に全幅で並べる（CSS の .layout を参照） -->
+  <!-- 入力〜変換のブロック。左に 01、右に 02・03（折りたたみ）と 04 を縦に並べる（CSS の .layout を参照）。狭い画面では1列 -->
   <div class="layout">
-    <div>
+    <div class="colL">
       <!-- 01 譜面を読み込む：テキストの貼り付け／ファイル／ブックマークで memo を取り込む -->
-      <section>
+      <section id="secInput">
         <h2><b>01</b>譜面を読み込む</h2>
         <label for="memo">曲情報＋譜面テキスト（ページ全体の貼り付けも可）</label>
         <p class="hint">sonicy memo / cosmos memo などのページから、曲情報から譜面末尾までをコピーして貼り付けてください。複数の難易度をまとめて貼り付けると、1つの .sm に入ります。</p>
         <textarea id="memo" rows="14" spellcheck="false" placeholder="曲名&#10;アーティスト&#10;EXTREME&#10;Level: 10&#10;BPM: 180&#10;1&#10;①口口口 |①－②－|&#10;口②口口 |③－④－|&#10;口口③口 |－－－－|&#10;口口口④ |－－－－|"></textarea>
         <div class="tabs">
-          <button id="read">曲情報を読み取る</button><button id="demo">サンプル</button><label class="button" for="file">ファイルを開く</label><input id="file" type="file" accept=".txt,.html,.htm,.memo">
+          <button id="read">曲情報を読み取る</button><label class="button" for="file">ファイルを開く</label><input id="file" type="file" accept=".txt,.html,.htm,.memo"><select id="demo" aria-label="サンプル譜面を読み込む"><option value="">サンプルを読み込む…</option><option value="basic">基本（4分・8分・16分）</option><option value="meter">変拍子・3連符・24分</option><option value="bpm">BPM変化</option><option value="hold">ホールド（縦・横・交差・隣マス）</option><option value="jack">縦連（16分・24分）</option><option value="chord">3〜4枚の同時押し</option><option value="overlap">ホールド中に同じ列のタップ</option><option value="multi">複数難易度（BASIC・ADVANCED・EXTREME）</option></select>
         </div>
+        <p id="demoNote" class="hint demo-note" hidden></p>
         <p class="hint">.txt / 保存したページの .html に対応。ホールドの矢印・線を含めて、必ず譜面の最初から取り込んでください。</p>
         <!-- ブックマークレット：href は JavaScript 側（$('bookmark').href）で設定する -->
         <details>
@@ -405,10 +500,12 @@
         </details>
       </section>
     </div>
-    <div>
+    <div class="colR">
       <!-- 02 曲情報・タイミング：.sm のヘッダーに書く値。曲情報は「読み取る」で自動入力される -->
-      <section id="secInfo" class="locked">
-        <h2><b>02</b>曲情報・タイミング<span class="lockNote">01 に譜面を入力すると使えます</span></h2>
+      <section id="secInfo" class="fold-sec locked">
+        <details id="foldInfo" class="fold">
+        <summary><h2><b>02</b>曲情報・タイミング<span class="lockNote">01 に譜面を入力すると使えます</span></h2><span class="foldSum" id="infoSum">—</span></summary>
+        <div class="foldBody">
         <div class="fields">
           <div class="wide">
             <label for="title">曲名 / TITLE</label><input id="title" placeholder="自動取得">
@@ -455,16 +552,30 @@
           </div>
         </div>
         <p class="hint">音源ファイル名は「曲名＋拡張子」が自動で入ります（拡張子は .mp3 / .ogg から選択）。「選択」で実際のファイルを選ぶと、その名前に変わります。音源を選んだ場合は再生にも使います。バナー・背景は banner.png / bg.png が初期値です。ファイル自体は同梱されないので、SMと同じフォルダーに置いてください。OFFSETの正値は譜面を早めます。</p>
-        <details>
+        <details id="bpmsBox">
           <summary>BPM変化を手入力する</summary>
           <label for="bpms">拍位置=BPM（SM形式）</label><input id="bpms" placeholder="0=180,64=200">
           <p class="hint">譜面中に「BPM: 205」のような行があれば、次の小節の頭から変化するものとして拍位置を自動計算します（ここは空欄のままでOK）。入力した場合はこちらを優先します。拍位置は曲頭からの四分音符の累計です。変拍子では小節番号×4にはなりません。</p>
         </details>
+        </div>
+        </details>
       </section>
       <!-- 03 譜面オプション：縦連緩和・同時押し緩和。4パネルへの割り当て（盤面の回転）は折りたたみの中 -->
-      <section id="secOpts" class="opts locked">
-        <h2><b>03</b>譜面オプション<span class="lockNote">01 に譜面を入力すると使えます</span></h2>
+      <section id="secOpts" class="opts fold-sec locked">
+        <details id="foldOpts" class="fold">
+        <summary><h2><b>03</b>譜面オプション<span class="lockNote">01 に譜面を入力すると使えます</span></h2><span class="foldSum" id="optsSum">—</span></summary>
+        <div class="foldBody">
         <div class="optgrid">
+          <div>
+            <label for="jbhold">ホールド（jubeat のホールドの出力方法）</label>
+            <select id="jbhold">
+              <option value="off">始点だけタップ（終点は出力しない）</option>
+              <option value="taps">始点と終点をタップ（フリーズなし）</option>
+              <option value="on">フリーズアロー（同じ列にノーツが重ならないホールドだけ）</option>
+              <option value="force">フリーズアロー・ホールド優先（重なるタップを消して全部フリーズ）</option>
+            </select>
+            <p class="hint">フリーズアロー：例えばパネル1をホールド中に、同じ列のパネル5・9・13にノーツがなければ、元の長さのフリーズにします。重なる場合は始点のタップのままです。ホールド優先：ホールド中に同じ列へ来るタップを消して、ホールドをフリーズにします。</p>
+          </div>
           <div>
             <label for="jack">縦連緩和（同じレーンの速い連打をフリーズアローに置き換え）</label>
             <select id="jack">
@@ -483,7 +594,8 @@
               <option value="left">←↓優先（左から2つを残す）</option>
               <option value="right">↑→優先（右から2つを残す）</option>
             </select>
-            <p class="hint">フリーズ中のレーンも1つとして数え、合計2つを超えないようにします。オフのときは3〜4枚の同時押しもそのまま出力します。</p>
+            <div class="checks" style="margin-top:8px"><label><input type="checkbox" id="holdFirst" checked> ホールド最優先（ホールドのノーツを先に残す）</label></div>
+            <p class="hint">ホールド最優先：ホールドの始点（「始点と終点をタップ」では終点も）を先に残し、ホールド以外のノーツから削ります。ホールドどうしが3つ以上重なるときは上の優先順で選びます。フリーズ中のレーンも1つとして数え、合計2つを超えないようにします。オフのときは3〜4枚の同時押しもそのまま出力します。</p>
           </div>
         </div>
         <!-- 4パネルへの割り当て：jubeat の盤面を回転してから、縦の列を ← ↓ ↑ → にする -->
@@ -495,8 +607,10 @@
             </div>
             <div id="map" class="map" aria-label="各パネルの割り当て先">
             </div>
-            <p class="hint">jubeat の盤面を回転してから、縦の列を左から ← ↓ ↑ → に割り当てます。図は元の盤面の各パネルがどの矢印になるかを示します。同時刻・同レーンに重なるノーツは1つに統合します。ホールド始点はタップに変換し、終点は出力しません。</p>
+            <p class="hint">jubeat の盤面を回転してから、縦の列を左から ← ↓ ↑ → に割り当てます。図は元の盤面の各パネルがどの矢印になるかを示します。同時刻・同レーンに重なるノーツは1つに統合します。</p>
           </div>
+        </details>
+        </div>
         </details>
       </section>
       <!-- 04 変換・書き出し：変換結果・統計・小節ごとの拍数・.sm テキスト -->
@@ -511,10 +625,12 @@
         <!-- 変換結果。「SMに変換」を押すまではグレーアウト（setLocked() で切り替え） -->
         <div id="convResult" class="locked">
         <!-- 譜面ごとの集計（複数の難易度もまとめて1つの表に） -->
+        <div class="tscroll">
         <table class="summary">
-          <thead><tr><th>譜面</th><th>小節</th><th>拍数</th><th>出力ノーツ</th><th>除外した終点</th><th>縦連緩和<br><small>フリーズ本数</small></th><th>同時押し緩和<br><small>箇所</small></th></tr></thead>
-          <tbody id="summaryRows"><tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></tbody>
+          <thead><tr><th>譜面</th><th>小節</th><th>拍数</th><th>出力<br>ノーツ</th><th>除外<br>終点</th><th>ホールド<br><small>フリーズ／終点</small></th><th>縦連緩和<br><small>本数</small></th><th>同時押し<br><small>緩和箇所</small></th></tr></thead>
+          <tbody id="summaryRows"><tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></tbody>
         </table>
+        </div>
         <details id="barsBox">
           <summary>小節ごとの拍数</summary>
           <p class="hint">行をクリックすると、再生位置をその小節へ移動します。4拍以外の小節は強調表示します。</p>
@@ -600,7 +716,8 @@
     <div id="stage" class="stage">
       <canvas id="pcanvas" aria-label="譜面の再生画面"></canvas>
     </div>
-    <p class="hint">Space：再生／一時停止　← →：5秒移動　↑ ↓：ハイスピード　[ ]：OFFSET ±10ms　Shift＋[ ]：±100ms　R：Reverse　H：ホールドマーカー　Enter：選択した小節の頭から再生　L：ループ切替　（別ウィンドウでも同じキーが使えます。画面クリックでも再生／一時停止）<br>ノーツが音より遅れて見える・クラップが遅れて聞こえるときは OFFSET を増やしてください。変更した OFFSET は保存する .sm にもそのまま反映されます。StepMania 側のオレンジの線と番号は、元の jubeat の小節線です。</p>
+    <p class="hint touchhelp">画面をタップすると再生／一時停止します。「全画面」で再生画面だけを大きく表示できます。</p>
+    <p class="hint"><span class="keyhelp">Space：再生／一時停止　← →：5秒移動　↑ ↓：ハイスピード　[ ]：OFFSET ±10ms　Shift＋[ ]：±100ms　R：Reverse　H：ホールドマーカー　Enter：選択した小節の頭から再生　L：ループ切替　（別ウィンドウでも同じキーが使えます。画面クリックでも再生／一時停止）<br></span>ノーツが音より遅れて見える・クラップが遅れて聞こえるときは OFFSET を増やしてください。変更した OFFSET は保存する .sm にもそのまま反映されます。StepMania 側のオレンジの線と番号は、元の jubeat の小節線です。</p>
   </section>
   <!-- フッター（変換ルールの要約） -->
   <footer>変拍子に対応。リズム行 |…| は1行を1拍として文字数で等分します（4文字＝16分、6文字＝24分、8文字＝32分）。1・2文字の短い行だけは16分刻みで、それぞれ0.25拍・0.5拍として数えます（|⑥⑦| ＝ 0.5拍）。4拍以外の小節は変換後に一覧表示します。拍数を累積してSMの4拍区切りへ詰め直すため、元の小節線とは一致しない場合があります。変換結果と曲情報を確認してから保存してください。</footer>
@@ -651,8 +768,11 @@ function rowParts(line) {
     return { grid: (m ? m[1] : line).replace(/[\s\u00a0]/g, ''), timing: m ? m[2].replace(/\s/g, '') : null };
 }
 // 4文字すべてがパネル記号（丸数字・口・ホールドの矢印や線）なら配置行とみなす
+// ホールドの線に使われる文字。横線・縦線のほか、線どうしが交差するマス（╋ ┼ ＋ 十 など）も含む。
+// 交差のマスは縦にも横にも通り抜けられるので、どの向きの矢印からでも先へたどれる
+const HOLD_LINE = 'ー―─━－-｜│┃|╋┼╂┿╬＋+十';
 function isGrid(s) {
-    return [...s].length === 4 && [...s].every(c => isNote(c) || '口□■◇◆○●ー―─━－-｜│┃|∧∨＜＞<>^vＶＶ△▽▲▼'.includes(c));
+    return [...s].length === 4 && [...s].every(c => isNote(c) || ('口□■◇◆○●∧∨＜＞<>^vＶＶ△▽▲▼' + HOLD_LINE).includes(c));
 }
 // 曲情報を読む。最初の「小節番号＋配置行」より前をヘッダーとして扱う。
 //   曲名・アーティストは「BASIC/ADVANCED/EXTREME」の2行上と1行上。
@@ -865,7 +985,7 @@ function parseMemo(text) {
                             found = true;
                             break;
                         }
-                        if (!'ー―─━－-｜│┃|'.includes(target)) {
+                        if (!HOLD_LINE.includes(target)) {
                             break;
                         }
                         rr += direction[0];
@@ -942,7 +1062,14 @@ function smEscape(s) {
 //   edge   ←→優先 … 中央(1.5)から遠い順。例）←↓→ → ←→、↓↑→ → →↓
 //   center ↑↓優先 … 中央に近い順
 //   left   ←↓優先 / right ↑→優先 … 左（右）から順に
-function pickLanes(lanes, keep, mode) {
+//   prio   … 最優先で残すレーンの集合（ホールド最優先のとき、その tick のホールドのレーン）
+function pickLanes(lanes, keep, mode, prio) {
+    if (prio && prio.size) {
+        // ホールドのレーンを先に、それ以外を後に。それぞれの中は mode の順
+        const first = pickLanes(lanes.filter(l => prio.has(l)), 4, mode);
+        const rest = pickLanes(lanes.filter(l => !prio.has(l)), 4, mode);
+        return [...first, ...rest].slice(0, keep);
+    }
     const d = l => Math.abs(l - 1.5);
     let order;
     if (mode === 'edge') {
@@ -1012,19 +1139,92 @@ function buildSM(parsed, info, mapping) {
         }
         set.add(lane);
     }
+    // ---- ホールド「始点と終点をタップ」：フリーズにはせず、ホールドの終点にもタップを置く ----
+    let jbEndTaps = 0;
+    if (info.jbhold === 'taps') {
+        for (const e of parsed.events) {
+            if (!e.head || e.endBeat == null) {
+                continue;
+            }
+            const tick = Math.round(e.endBeat * 48), lane = mapping[e.pos];
+            if (!taps.has(tick)) {
+                taps.set(tick, new Set());
+            }
+            if (taps.get(tick).has(lane)) {
+                merged++;
+            }
+            taps.get(tick).add(lane);
+            jbEndTaps++;
+        }
+    }
     // ---- 同時押し緩和：3つ以上の同時押しを、指定した優先順位で2つに減らす ----
     const reducedTicks = new Set();
     const chordMode = info.chord || 'off';
+    // ホールド最優先：tick → ホールドのノーツがあるレーン（始点。「始点と終点をタップ」なら終点も）
+    const holdLanes = new Map();
+    if (info.holdFirst) {
+        const mark = (beat, lane) => {
+            const t = Math.round(beat * 48);
+            if (!holdLanes.has(t)) {
+                holdLanes.set(t, new Set());
+            }
+            holdLanes.get(t).add(lane);
+        };
+        for (const e of parsed.events) {
+            if (!e.head) {
+                continue;
+            }
+            mark(e.beat, mapping[e.pos]);
+            if (info.jbhold === 'taps' && e.endBeat != null) {
+                mark(e.endBeat, mapping[e.pos]);
+            }
+        }
+    }
     if (chordMode !== 'off') {
         for (const [tick, set] of taps)
             if (set.size > 2) {
-                taps.set(tick, new Set(pickLanes([...set], 2, chordMode)));
+                taps.set(tick, new Set(pickLanes([...set], 2, chordMode, holdLanes.get(tick))));
                 reducedTicks.add(tick);
             }
     }
+    // ---- ホールドあり：jubeat のホールドを元の長さのフリーズアローにする ----
+    //   ホールド中（始点の後〜終点まで）に、同じレーンへほかのノーツやフリーズが来ない場合だけフリーズにする。
+    //   例）パネル1（左列）をホールド中に、同じ列のパネル5・9・13にノーツがなければフリーズ。あればこれまでどおりタップ。
+    //   同時押し緩和がオンのときは、緩和で残った始点だけを対象にし、重なって押し続けるフリーズを2本までにする。
+    const holds = [];   // フリーズアロー { lane, head, tail }（ホールドあり・縦連緩和の両方で使う）
+    //   ホールド優先（force）：同じレーンのタップが重なっても、そのタップを消してフリーズにする。
+    let jbHolds = 0, jbHoldTaps = 0, jbDropped = 0;
+    const force = info.jbhold === 'force';
+    if (info.jbhold === 'on' || force) {
+        const cands = parsed.events.filter(e => e.head && e.endBeat != null)
+            .map(e => ({ lane: mapping[e.pos], head: Math.round(e.beat * 48), tail: Math.round(e.endBeat * 48), jb: true }))
+            .sort((a, b) => a.head - b.head);
+        for (const h of cands) {
+            const clash = h.tail <= h.head
+                || !(taps.get(h.head) && taps.get(h.head).has(h.lane))
+                || (chordMode !== 'off' && holds.filter(o => o.head <= h.tail && h.head < o.tail).length >= 2)
+                || (!force && [...taps.keys()].some(t => t > h.head && t <= h.tail && taps.get(t).has(h.lane)))
+                || holds.some(o => o.lane === h.lane && o.head <= h.tail && h.head <= o.tail);
+            if (clash) {
+                jbHoldTaps++;
+                continue;
+            }
+            holds.push(h);
+            taps.get(h.head).delete(h.lane);   // 始点のタップはフリーズ始点に置き換える
+            if (force) {
+                // ホールド中（始点の後〜終点）に同じレーンへ来るタップを消す
+                for (const [t, set] of taps) {
+                    if (t > h.head && t <= h.tail && set.delete(h.lane)) {
+                        jbDropped++;
+                    }
+                }
+            }
+            jbHolds++;
+        }
+    }
     // ---- 縦連緩和：同じレーンで間隔が短い連続ノーツをフリーズアローに置き換える ----
     // 例）16分の3連 → 1つ目を始点、4つ目のタイミング（最後＋1間隔）を終点にしたフリーズ
-    const holds = [];
+    //   「ホールドあり」で作ったフリーズと重なってしまう縦連は、タップのまま残す
     let jacks = 0;
     const jackLimit = { off: 0, '16': 12, '24': 8 }[info.jack || 'off'];
     if (jackLimit) {
@@ -1036,9 +1236,9 @@ function buildSM(parsed, info, mapping) {
                 while (j + 1 < ticks.length && ticks[j + 1] - ticks[j] <= jackLimit) {
                     j++;
                 }
-                if (j > i) {
-                    const gap = ticks[j] - ticks[j - 1];
-                    holds.push({ lane, head: ticks[i], tail: ticks[j] + gap });
+                const tail = j > i ? ticks[j] + (ticks[j] - ticks[j - 1]) : 0;
+                if (j > i && !holds.some(o => o.lane === lane && o.head <= tail && ticks[i] <= o.tail)) {
+                    holds.push({ lane, head: ticks[i], tail });
                     for (let k = i; k <= j; k++) {
                         taps.get(ticks[k]).delete(lane);
                     }
@@ -1054,7 +1254,7 @@ function buildSM(parsed, info, mapping) {
             const busy = holds.filter(h => h.head <= tick && tick < h.tail).length;
             const room = Math.max(0, 2 - busy);
             if (set.size > room) {
-                taps.set(tick, new Set(pickLanes([...set], room, chordMode)));
+                taps.set(tick, new Set(pickLanes([...set], room, chordMode, holdLanes.get(tick))));
                 reducedTicks.add(tick);
             }
         }
@@ -1108,8 +1308,8 @@ function buildSM(parsed, info, mapping) {
         return bar.filter((_, i) => i % step === 0);
     };
     const body = rows.map((bar, i) => '// measure ' + (i + 1) + '\n' + compact(bar).map(r => r.join('')).join('\n')).join('\n,\n');
-    const sm = '#TITLE:' + smEscape(info.title) + ';\n#ARTIST:' + smEscape(info.artist) + ';\n#SUBTITLE:;\n#MUSIC:' + smEscape(info.music) + ';\n#BANNER:' + smEscape(info.banner || '') + ';\n#BACKGROUND:' + smEscape(info.bg || '') + ';\n#OFFSET:' + Number(info.offset) + ';\n#BPMS:' + bpms + ';\n#STOPS:;\n#SAMPLESTART:0;\n#SAMPLELENGTH:10;\n// Original jubeat level: ' + Number(info.level) + '\n// Converted by jb2SM. Hold heads become taps; hold tails omitted.' + (jacks ? '\n// Jack avoidance: ' + jacks + ' runs became freeze arrows.' : '') + (chordMode !== 'off' ? '\n// Chord reduction: ' + chordMode + '.' : '') + '\n#NOTES:\n     dance-single:\n     jubeat memo:\n     ' + info.difficulty + ':\n     ' + Math.round(+info.level) + ':\n     0,0,0,0,0:\n' + body + '\n;\n';
-    return { sm, rows, merged, notes, chords, reduced, jacks, bpmList: bpms.split(',').map(p => p.split('=').map(Number)), offset: Number(info.offset) };
+    const sm = '#TITLE:' + smEscape(info.title) + ';\n#ARTIST:' + smEscape(info.artist) + ';\n#SUBTITLE:;\n#MUSIC:' + smEscape(info.music) + ';\n#BANNER:' + smEscape(info.banner || '') + ';\n#BACKGROUND:' + smEscape(info.bg || '') + ';\n#OFFSET:' + Number(info.offset) + ';\n#BPMS:' + bpms + ';\n#STOPS:;\n#SAMPLESTART:0;\n#SAMPLELENGTH:10;\n// Original jubeat level: ' + Number(info.level) + '\n// Converted by jb2SM. ' + (force ? 'Holds became freeze arrows (' + jbHolds + '); ' + jbDropped + ' overlapping taps removed.' : info.jbhold === 'on' ? 'Holds became freeze arrows where the lane was free (' + jbHolds + '); other hold heads became taps.' : info.jbhold === 'taps' ? 'Hold heads and tails both became taps.' : 'Hold heads become taps; hold tails omitted.') + (jacks ? '\n// Jack avoidance: ' + jacks + ' runs became freeze arrows.' : '') + (chordMode !== 'off' ? '\n// Chord reduction: ' + chordMode + '.' : '') + '\n#NOTES:\n     dance-single:\n     jubeat memo:\n     ' + info.difficulty + ':\n     ' + Math.round(+info.level) + ':\n     0,0,0,0,0:\n' + body + '\n;\n';
+    return { sm, rows, merged, notes, chords, reduced, jacks, jbHolds, jbHoldTaps, jbEndTaps, jbDropped, bpmList: bpms.split(',').map(p => p.split('=').map(Number)), offset: Number(info.offset) };
 }
 /* ==========================================================================
    4. 画面（入力欄・ボタン）の処理
@@ -1133,10 +1333,29 @@ let sheets = [];
 //   pos         … 停止中の再生位置（秒）。−1 は1秒の助走
 //   chart       … 再生用に時刻へ変換した譜面（prepareChart() が作る）
 const P = { ctx: null, buf: null, src: null, gain: null, cgain: null, clapBuf: null, claps: [], playing: false, startCtx: 0, pos: -1, chart: null, seeking: false, resume: false, win: null };
-// 結果欄にメッセージを表示する
+// 結果欄にメッセージを表示する。02 の入力に関するエラーなら 02 を開く
 function status(s, error = false) {
     $('status').textContent = s;
     $('status').classList.toggle('error', error);
+    if (error && /曲名|BPM|OFFSET|レベル|難易度/.test(s)) {
+        $('foldInfo').open = true;
+    }
+}
+// 折りたたんだ 02・03 の見出しに、今の設定の要約を表示する
+function updateFoldSums() {
+    const opt = id => $(id).selectedOptions[0] ? $(id).selectedOptions[0].textContent.replace(/（.*$/, '') : '';
+    const charts = [...document.querySelectorAll('#chartRows tr')].filter(tr => tr.querySelector('input[type=checkbox]:checked')).map(tr => {
+        const sel = tr.querySelector('select'), lv = tr.querySelector('input[type=number]');
+        return sel ? sel.value + (lv && lv.value ? ' Lv' + lv.value : '') : '';
+    }).filter(Boolean);
+    const bpm = $('bpms').value.trim() ? 'BPM変化（手入力）' : $('bpm').value ? 'BPM ' + $('bpm').value : 'BPM —';
+    $('infoSum').textContent = [($('title').value.trim() || '曲名なし'), bpm, 'OFFSET ' + ($('offset').value || 0), charts.join('・')].filter(Boolean).join(' ／ ');
+    const rot = { '0': '通常', l: '左90度', r: '右90度', '180': '180度' }[(document.querySelector('input[name=rot]:checked') || {}).value] || '通常';
+    $('optsSum').textContent = ['ホールド：' + opt('jbhold'), '縦連緩和：' + opt('jack'), '同時押し緩和：' + opt('chord') + ($('chord').value !== 'off' && $('holdFirst').checked ? '＋ホールド最優先' : ''), '回転：' + rot].join(' ／ ');
+}
+for (const id of ['secInfo', 'secOpts']) {
+    $(id).addEventListener('input', () => updateFoldSums());
+    $(id).addEventListener('change', () => updateFoldSums());
 }
 // 入力が変わったら、古い変換結果と再生を破棄する
 function invalidate() {
@@ -1151,7 +1370,7 @@ function invalidate() {
     result = null;
     $('download').disabled = true;
     $('output').textContent = '';
-    $('summaryRows').innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+    $('summaryRows').innerHTML = '<tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
 }
 // 「曲情報を読み取る」：入力欄へ曲名などを反映し、BPM 変化の有無を知らせる
 function readMeta() {
@@ -1176,6 +1395,10 @@ function readMeta() {
     const multi = new Set(inl).size > 1;
     const found = sheets.length > 1 ? '難易度を ' + sheets.length + ' 個検出しました（' + sheets.map(x => x.meta.label || '?').join('・') + '）。1つの .sm にまとめて出力します。\n' : '';
     status(found + (multi ? '曲情報を読み取りました。譜面中のBPM変化（' + [...new Set(inl)].join(' → ') + '）は、変換時に拍位置を自動で計算します。' : bpmRange ? 'BPMは ' + detected.bpm + ' です。譜面中にBPM変化の行がないため、BPM変化の拍位置を手入力してください。' : '曲情報を読み取りました。空欄とタイミングを確認して「SMに変換」を押してください。'), bpmRange && !multi);
+    if (bpmRange && !multi) {
+        $('bpmsBox').open = true;   // BPM変化の拍位置を手入力してもらう
+    }
+    updateFoldSums();
 }
 // 「譜面ごとの設定」の表を作る（出力するか・SM の難易度・レベル）
 const SM_DIFFS = [['Beginner', 'Beginner（BEGINNER）'], ['Easy', 'Easy（BASIC）'], ['Medium', 'Medium（DIFFICULT）'], ['Hard', 'Hard（EXPERT）'], ['Challenge', 'Challenge（CHALLENGE）']];
@@ -1302,7 +1525,7 @@ function useChart(all, i) {
     tb.textContent = '';
     for (const c of all.charts) {
         const tr = document.createElement('tr');
-        for (const v of [c.name + ' → ' + c.difficulty + ' Lv' + Math.round(+c.level), c.parsed.bars.length, c.parsed.totalBeats, c.notes, c.parsed.ends, $('jack').value === 'off' ? '—' : c.jacks, $('chord').value === 'off' ? '—' : c.reduced]) {
+        for (const v of [c.name + ' → ' + c.difficulty + ' Lv' + Math.round(+c.level), c.parsed.bars.length, c.parsed.totalBeats, c.notes, $('jbhold').value === 'taps' ? 0 : c.parsed.ends, $('jbhold').value === 'force' ? c.jbHolds + ' 本' + (c.jbDropped ? '（−' + c.jbDropped + '）' : '') : $('jbhold').value === 'on' ? c.jbHolds + ' 本' : $('jbhold').value === 'taps' ? c.jbEndTaps + ' 個' : '—', $('jack').value === 'off' ? '—' : c.jacks, $('chord').value === 'off' ? '—' : c.reduced]) {
             const td = document.createElement('td');
             td.textContent = v;
             tr.append(td);
@@ -1371,7 +1594,7 @@ $('convert').onclick = () => {
             if (all.charts.length > 1) {
                 lines.push('', '【' + c.name + ' → ' + c.difficulty + ' Lv' + Math.round(+c.level) + '】');
             }
-            lines.push('元譜面 ' + parsed.bars.length + ' 小節 / ' + parsed.totalBeats + ' 拍 → SM ' + c.rows.length + ' 区間。ホールド始点 ' + parsed.starts + ' 個をタップ化。');
+            lines.push('元譜面 ' + parsed.bars.length + ' 小節 / ' + parsed.totalBeats + ' 拍 → SM ' + c.rows.length + ' 区間。' + ($('jbhold').value === 'force' ? 'ホールド ' + parsed.starts + ' 個のうち ' + c.jbHolds + ' 個をフリーズ（重なるタップ ' + c.jbDropped + ' 個を削除）' + (c.jbHoldTaps ? '・' + c.jbHoldTaps + ' 個をタップ' : '') + 'に。' : $('jbhold').value === 'on' ? 'ホールド ' + parsed.starts + ' 個のうち ' + c.jbHolds + ' 個をフリーズ・' + c.jbHoldTaps + ' 個をタップに。' : $('jbhold').value === 'taps' ? 'ホールド ' + parsed.starts + ' 個の始点と終点をタップに。' : 'ホールド始点 ' + parsed.starts + ' 個をタップ化。'));
             lines.push('同レーンの同時ノーツ ' + c.merged + ' 個を統合。3〜4枚同時押し ' + c.chords + ' 箇所。' + (c.reduced ? '同時押し緩和 ' + c.reduced + ' 箇所。' : '') + (c.jacks ? '縦連緩和でフリーズ ' + c.jacks + ' 本。' : ''));
             const odd = parsed.bars.filter(b => b.beats !== 4).map(b => b.number + '(' + b.beats + '拍)');
             if (odd.length) {
@@ -1434,11 +1657,48 @@ $('file').onchange = async (e) => {
 //   終了：最後の難易度の行より後にある「不確定度」「最終更新」「〜をウィキ内検索」の行の手前
 //   （1ページに複数の難易度がある場合も、すべてコピーされる）
 $('bookmark').href = 'javascript:' + encodeURIComponent("(()=>{const L=document.body.innerText.replace(/\\r/g,'').split('\\n').map(s=>s.replace(/\\s+$/,''));const d=L.findIndex(s=>/^(BASIC|ADVANCED|EXTREME)$/i.test(s.trim()));let st=-1;if(d>=0){let c=0;st=d;for(let i=d-1;i>=0&&c<2;i--)if(L[i].trim()){st=i;c++;}}else st=L.findIndex(s=>/\\((BSC|ADV|EXT)\\)\\s*$/i.test(s.trim()));if(st<0){alert('譜面が見つかりません');return;}const z=L.reduce((m,s,i)=>/^(BASIC|ADVANCED|EXTREME)$/i.test(s.trim())?i:m,st);let en=L.findIndex((s,i)=>i>z&&/^(不確定度|最終更新|「.*」をウィキ内検索)/.test(s.trim()));if(en<0)en=L.length;const t=L.slice(st,en).join('\\n').replace(/\\n{3,}/g,'\\n\\n').trim()+'\\n';const ok=()=>alert('コピーしました：'+L[st].trim()+'（'+t.split('\\n').length+'行）');const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();document.execCommand('copy');a.remove();ok();};navigator.clipboard?navigator.clipboard.writeText(t).then(ok,fb):fb();})()");
-// 「サンプル」：動作確認用の短い譜面
-$('demo').onclick = () => {
-    $('memo').value = '変換サンプル\nMemo Converter\nEXTREME\nLevel: 8\nBPM: 180\nNotes: 10\n1\n①口口口 |①－②－|\n口②口口 |③－④－|\n口口③口 |－－－－|\n口口口④ |－－－－|\n2\n＞―①口 |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n3\n口口①口 |①－②－|\n②口口② |③－－－|\n口③③口 |－－－－|\n口口口口 |－－－－|';
+// 「サンプル」：シチュエーション別の短い譜面（動作確認用。すべてこのツール用に作った譜面）
+//   opts … 読み込んだときに合わせて切り替える譜面オプション（それ以外は初期値に戻す）
+const SAMPLES = [
+    { key: "basic", name: "基本（4分・8分・16分）", desc: "4分・8分・16分と同時押しだけの基本形です。そのまま「SMに変換」してください。", opts: {},
+      text: "基本サンプル\njb2SM Samples\nEXTREME\nLevel: 4\nBPM: 150\n1\n①口口口 |①－－－|\n口②口口 |②－－－|\n口口③口 |③－－－|\n口口口④ |④－－－|\n2\n①口口② |①－②－|\n口③④口 |③－④－|\n⑤口口⑥ |⑤－⑥－|\n口⑦⑧口 |⑦－⑧－|\n3\n①②③④ |①②③④|\n⑤⑥⑦⑧ |⑤⑥⑦⑧|\n⑨⑩⑪⑫ |⑨⑩⑪⑫|\n⑬⑭⑮⑯ |⑬⑭⑮⑯|\n4\n①口口① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|" },
+    { key: "meter", name: "変拍子・3連符・24分", desc: "3文字の行は3連符（1拍）、6文字の行は24分（1拍）、2文字の行 |⑦－| は0.5拍です。2小節目は3.5拍になります。", opts: {},
+      text: "変拍子サンプル\njb2SM Samples\nEXTREME\nLevel: 6\nBPM: 140\n1\n①②③口 |①②③|\n④⑤⑥口 |④⑤⑥|\n⑦口⑧口 |⑦－⑧－|\n口口口⑨ |⑨－－－|\n2\n①口口② |①－②－|\n口③④口 |③－④－|\n⑤口口⑥ |⑤－⑥－|\n口⑦口口 |⑦－|\n3\n①②③④ |①②③④⑤⑥|\n⑤⑥口口 |⑦－－－|\n口口⑦口 |－－－－|\n口口口口 |－－－－|\n4\n①口口① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|" },
+    { key: "bpm", name: "BPM変化", desc: "譜面中の「BPM: 180」の行から、次の小節の頭でBPMが変わります（#BPMS は自動計算）。", opts: {},
+      text: "BPM変化サンプル\njb2SM Samples\nEXTREME\nLevel: 5\nBPM: 120-180\nBPM: 120\n1\n①口口口 |①－②－|\n口②口口 |③－④－|\n口口③口 |⑤－⑥－|\n口口口④ |⑦－⑧－|\n\n口口口⑤\n口口⑥口\n口⑦口口\n⑧口口口\n2\n①口口① |①－－－|\n口口口口 |－－－－|\n口②②口 |②－－－|\n口口口口 |－－－－|\nBPM: 180\n3\n①口口口 |①－②－|\n口②口口 |③－④－|\n口口③口 |⑤－⑥－|\n口口口④ |⑦－⑧－|\n\n口口口⑤\n口口⑥口\n口⑦口口\n⑧口口口\n4\n①口口① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|" },
+    { key: "hold", name: "ホールド（縦・横・交差・隣マス）", desc: "1小節目は縦、2小節目は横、3小節目は交差（╋）、4小節目は隣のマスの矢印です。「ホールド」をフリーズアローにして、jubeat 表示のホールドマーカーも確かめてください。", opts: {"jbhold": "on"},
+      text: "ホールドサンプル\njb2SM Samples\nEXTREME\nLevel: 7\nBPM: 140\n1\n①口口① |①－－－|\n｜口口｜ |－－－－|\n｜口口｜ |－－－－|\n∧口口∧ |②－③－|\n\n②口口②\n口③③口\n口口口口\n口口口口\n2\n＞――① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n①――＜ |②－③－|\n\n口口口②\n口③③口\n口口口口\n②口口口\n3\n口①∨口 |①－－－|\n＞╋╋① |－－－－|\n①╋╋＜ |－－－－|\n口∧①口 |②－－－|\n\n口②口口\n口口口②\n②口口口\n口口②口\n4\n口①＜口 |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |②－－－|\n\n口②口口\n口口口口\n口口口口\n口口口口" },
+    { key: "jack", name: "縦連（16分・24分）", desc: "同じ列の速い連打です。「縦連緩和」を「16分以下」にすると、連打がフリーズアローになります。", opts: {"jack": "16"},
+      text: "縦連サンプル\njb2SM Samples\nEXTREME\nLevel: 8\nBPM: 160\n1\n①口⑦⑪ |①②③－|\n②④⑧⑫ |④⑤⑥－|\n③⑤⑨口 |⑦⑧⑨⑩|\n口⑥⑩口 |⑪－⑫－|\n2\n①④口口 |①②③－－－|\n②⑤口口 |④⑤⑥－－－|\n③⑥口口 |⑦－⑧－|\n口口⑦⑧ |－－－－|\n3\n①口口① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|" },
+    { key: "chord", name: "3〜4枚の同時押し", desc: "3枚・4枚の同時押しがあります。「同時押し緩和」で2枚に減ります。2小節目は ↓ がホールドなので、「ホールド最優先」のオン・オフで残る矢印が変わります。", opts: {"chord": "edge", "jbhold": "on"},
+      text: "同時押しサンプル\njb2SM Samples\nEXTREME\nLevel: 7\nBPM: 150\n1\n①①口① |①－－－|\n口口口口 |②－－－|\n②口②② |③－－－|\n③③③③ |－－－－|\n2\n①∨口① |①－－－|\n口｜口口 |－－－－|\n口①口口 |－－－－|\n口口口口 |②－－－|\n\n口口口口\n口口口口\n口②口口\n口口口口\n3\n①口口① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|" },
+    { key: "overlap", name: "ホールド中に同じ列のタップ", desc: "ホールド中に同じ列へタップが来ます。「ホールド」をフリーズアローにすると1小節目はタップのまま、「フリーズアロー・ホールド優先」にすると重なるタップを消してフリーズになります。", opts: {"jbhold": "force"},
+      text: "ホールド優先サンプル\njb2SM Samples\nEXTREME\nLevel: 6\nBPM: 140\n1\n①口口口 |①－－－|\n｜口口口 |②－③－|\n∧口口口 |④－－－|\n②口③口 |－－－－|\n\n④口口口\n口口口口\n口口口口\n口口口口\n2\n口口口① |①－－－|\n口口口｜ |－－②－|\n口口口∧ |－－－－|\n口②口口 |③－－－|\n\n口口口③\n口口口口\n口口口口\n口口口口" },
+    { key: "multi", name: "複数難易度（BASIC・ADVANCED・EXTREME）", desc: "3つの難易度をまとめて貼り付けた形です。1つの .sm に Beginner・Medium・Hard の3譜面が入ります。", opts: {},
+      text: "複数難易度サンプル\njb2SM Samples\nBASIC\nLevel: 2\nBPM: 130\n1\n①口口口 |①－－－|\n口口口口 |②－－－|\n口口口② |③－－－|\n口口③口 |④－－－|\n\n口④口口\n口口口口\n口口口口\n口口口口\n2\n①口口① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n\n複数難易度サンプル\njb2SM Samples\nADVANCED\nLevel: 5\nBPM: 130\n1\n①口口② |①－②－|\n口③④口 |③－④－|\n⑤口口⑥ |⑤－⑥－|\n口⑦⑧口 |⑦－⑧－|\n2\n①口口① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n\n複数難易度サンプル\njb2SM Samples\nEXTREME\nLevel: 8\nBPM: 130\n1\n①②③④ |①②③④|\n⑤⑥⑦⑧ |⑤⑥⑦⑧|\n⑨⑩⑪⑫ |⑨⑩⑪⑫|\n⑬⑭⑮⑯ |⑬⑭⑮⑯|\n2\n①口口① |①－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|\n口口口口 |－－－－|" }
+];
+$('demo').onchange = () => {
+    const smp = SAMPLES.find(x => x.key === $('demo').value);
+    if (!smp) {
+        return;
+    }
+    $('memo').value = smp.text;
     readMeta();
+    // 譜面オプションを初期値に戻してから、サンプルに合った設定にする
+    const opts = { jbhold: 'off', jack: 'off', chord: 'off', ...smp.opts };
+    for (const [id, v] of Object.entries(opts)) {
+        $(id).value = v;
+    }
+    $('holdFirst').checked = true;
+    const names = { jbhold: 'ホールド', jack: '縦連緩和', chord: '同時押し緩和' };
+    const changed = Object.keys(smp.opts).map(id => names[id] + '「' + $(id).selectedOptions[0].textContent.replace(/（.*$/, '') + '」').join('・');
+    $('demoNote').textContent = '【' + smp.name + '】' + smp.desc + (changed ? '（譜面オプションを ' + changed + ' にしました）' : '');
+    $('demoNote').hidden = false;
+    updateFoldSums();
+    $('demo').value = '';
 };
+// 手で譜面を書き換えたら、サンプルの説明は消す
+$('memo').addEventListener('input', () => { $('demoNote').hidden = true; });
 /* ==========================================================================
    5. 再生プレイヤー（音源と同期して StepMania / jubeat 表示を描く）
    ========================================================================== */
@@ -1447,9 +1707,10 @@ const gcd = (a, b) => b ? gcd(b, a % b) : a;
 // 曲情報欄・オプション欄の値をまとめて取得する
 function readInfo() {
     const info = {};
-    for (const id of ['title', 'artist', 'bpm', 'offset', 'music', 'banner', 'bg', 'bpms', 'jack', 'chord']) {
+    for (const id of ['title', 'artist', 'bpm', 'offset', 'music', 'banner', 'bg', 'bpms', 'jack', 'chord', 'jbhold']) {
         info[id] = $(id).value;
     }
+    info.holdFirst = $('holdFirst').checked;
     return info;
 }
 // 16パネル → レーン の対応表を作る
@@ -2109,7 +2370,7 @@ function renderTo(canvas) {
     g.fillStyle = '#04060a';
     rr(g, inset, inset, S - 2 * inset, S - 2 * inset, S * .022);
     g.fill();
-    const pad = S * .04, hh = S * .085, fs = Math.max(10, S * .024);
+    const pad = S * .04, fs = Math.max(10, S * .024), hh = Math.max(S * .085, fs * 3.4);   // 小さい画面では文字が最小10pxなので、見出しの高さを文字に合わせる
     if (!P.chart) {
         g.fillStyle = '#8898b0';
         g.font = Math.max(12, S * .028) + 'px system-ui,sans-serif';
@@ -2133,7 +2394,17 @@ function renderTo(canvas) {
     g.fillText(title.length > 28 ? title.slice(0, 27) + '…' : title, pad, pad + fs * 1.2);
     g.fillStyle = '#ff9d2e';
     g.font = fs * .85 + 'px monospace';
-    g.fillText('BAR ' + (beat < 0 ? '--' : bar.number) + (bar.beats !== 4 && beat >= 0 ? ' (' + bar.beats + '拍)' : '') + '   BPM ' + bpm + '   HS ×' + $('hs').value + '   OFFSET ' + Number(C.tm.off).toFixed(3) + ($('reverse').checked ? '   REVERSE' : ''), pad, pad + fs * 2.55);
+    // 小さい画面（スマホ）で幅に収まらないときは、短い表記にしてから文字を縮める
+    const barTxt = (beat < 0 ? '--' : bar.number) + (bar.beats !== 4 && beat >= 0 ? ' (' + bar.beats + '拍)' : '');
+    let hud = 'BAR ' + barTxt + '   BPM ' + bpm + '   HS ×' + $('hs').value + '   OFFSET ' + Number(C.tm.off).toFixed(3) + ($('reverse').checked ? '   REVERSE' : '');
+    if (g.measureText(hud).width > cw) {
+        hud = 'BAR ' + barTxt + ' BPM' + bpm + ' ×' + $('hs').value + ' OFS ' + Number(C.tm.off).toFixed(3) + ($('reverse').checked ? ' REV' : '');
+    }
+    const hw = g.measureText(hud).width, maxw = cw;
+    if (hw > maxw) {
+        g.font = Math.max(6, fs * .85 * maxw / hw) + 'px monospace';
+    }
+    g.fillText(hud, pad, pad + fs * 2.55);
     g.textAlign = 'right';
     g.fillStyle = '#f3f5f9';
     g.font = '600 ' + fs * 1.3 + 'px monospace';
@@ -2349,7 +2620,7 @@ $('barSel').onchange = () => {
     }
 };
 // 縦連緩和・同時押し緩和を変えたら、その場で変換し直す
-$('jack').onchange = $('chord').onchange = () => {
+$('jack').onchange = $('chord').onchange = $('jbhold').onchange = $('holdFirst').onchange = () => {
     if (result) {
         $('convert').click();
     }
@@ -2392,6 +2663,8 @@ loop(window, $('pcanvas'));
 if (typeof module !== 'undefined') {
     module.exports = { parseMemo, metadata, buildSM, splitCharts };
 }
+// 起動時：02・03 の要約を表示
+updateFoldSums();
 </script>
 </body>
 </html>
