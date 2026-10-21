@@ -151,6 +151,24 @@
     }
     button:hover, .button:hover { border-color:var(--accent); }
     button:disabled { opacity:.4; cursor:default; }
+    /* パネルごとの設定 */
+    .slotsBox { grid-column:1/-1; }
+    .slots { display:flex; flex-direction:column; gap:8px; }
+    .slot { display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#121822; }
+    .slot b { min-width:120px; font-size:14px; color:#dfe6f1; }
+    .slot .barpick select { width:auto; min-width:0; padding:5px 8px; font-size:13px; }
+    /* 16:9 のレイアウトでは再生画面を横長にする */
+    .stage.wide { width:min(100%, calc(80vh * 16 / 9)); aspect-ratio:16/9; }
+    /* 動画の書き出し */
+    .export { margin:4px 0 14px; border:1px solid var(--line); border-radius:10px; padding:10px 14px; }
+    .export summary { font-weight:650; color:#dfe6f1; }
+    .expbody { margin-top:10px; }
+    .exprow { display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; margin-bottom:10px; }
+    .exprow .barpick select { width:auto; min-width:0; padding:7px 9px; }
+    .exprow .barpick { white-space:nowrap; flex-wrap:nowrap; }
+    .exprow input[type=radio] { width:18px; height:18px; accent-color:var(--accent); }
+    #expBar { width:100%; height:10px; accent-color:var(--accent); }
+    #expGo { padding:10px 20px; }
     .primary {
       background:var(--accent);
       border-color:var(--accent);
@@ -452,6 +470,7 @@
       #playerSec>.stage { order:1; margin-top:10px; }
       #playerSec>.transport { order:2; }
       #playerSec>.transport.sub { order:3; }
+      #playerSec>.export { order:3; }
       #playerSec>.hint:last-child { order:4; }
       .transport:not(.sub) { flex-wrap:wrap; margin:12px 0 6px; }
       .transport #seek { order:3; flex-basis:100%; }
@@ -481,7 +500,7 @@
       <h1>jb2<span>SM</span></h1>
       <small>jubeat memo → StepMania</small>
     </div>
-    <small class="hdr"><span class="updated">最終更新 <time datetime="2026-10-17">2026-10-17</time></span></small>
+    <small class="hdr"><span class="updated">最終更新 <time datetime="2026-10-21">2026-10-21</time></span></small>
   </header>
   <!-- 入力〜変換のブロック。左に 01、右に 02・03（折りたたみ）と 04 を縦に並べる（CSS の .layout を参照）。狭い画面では1列 -->
   <div class="layout">
@@ -493,7 +512,7 @@
         <p class="hint">sonicy memo / cosmos memo などのページから、曲情報から譜面末尾までをコピーして貼り付けてください。複数の難易度をまとめて貼り付けると、1つの .sm に入ります。</p>
         <textarea id="memo" rows="14" spellcheck="false" placeholder="曲名&#10;アーティスト&#10;EXTREME&#10;Level: 10&#10;BPM: 180&#10;1&#10;①口口口 |①－②－|&#10;口②口口 |③－④－|&#10;口口③口 |－－－－|&#10;口口口④ |－－－－|"></textarea>
         <div class="tabs">
-          <button id="read">曲情報を読み取る</button><label class="button" for="file">ファイルを開く</label><input id="file" type="file" accept=".txt,.html,.htm,.memo"><select id="demo" aria-label="サンプル譜面を読み込む"><option value="">サンプルを読み込む…</option><option value="basic">基本（4分・8分・16分）</option><option value="meter">変拍子・3連符・24分</option><option value="bpm">BPM変化</option><option value="hold">ホールド（縦・横・交差・隣マス）</option><option value="jack">縦連（16分・24分）</option><option value="chord">3〜4枚の同時押し</option><option value="overlap">ホールド中に同じ列のタップ</option><option value="multi">複数難易度（BASIC・ADVANCED・EXTREME）</option></select>
+          <button id="read">曲情報を読み取る</button><label class="button" for="file">ファイルを開く</label><button id="saveMemo" disabled title="入力欄の譜面テキストを「曲名.txt」で保存">.txt で保存</button><input id="file" type="file" accept=".txt,.html,.htm,.memo"><select id="demo" aria-label="サンプル譜面を読み込む"><option value="">サンプルを読み込む…</option><option value="basic">基本（4分・8分・16分）</option><option value="meter">変拍子・3連符・24分</option><option value="bpm">BPM変化</option><option value="hold">ホールド（縦・横・交差・隣マス）</option><option value="jack">縦連（16分・24分）</option><option value="chord">3〜4枚の同時押し</option><option value="overlap">ホールド中に同じ列のタップ</option><option value="multi">複数難易度（BASIC・ADVANCED・EXTREME）</option></select>
         </div>
         <p id="demoNote" class="hint demo-note" hidden></p>
         <p class="hint">.txt / 保存したページの .html に対応。ホールドの矢印・線を含めて、必ず譜面の最初から取り込んでください。</p>
@@ -673,9 +692,17 @@
       <div>
         <label for="view">表示</label>
         <select id="view">
-          <option value="both">StepMania＋jubeat 同時</option>
-          <option value="sm">StepMania のみ</option>
-          <option value="jb">jubeat のみ</option>
+          <optgroup label="1:1（正方形）">
+            <option value="both">StepMania＋jubeat</option>
+            <option value="bothR">jubeat＋StepMania（左右逆）</option>
+            <option value="sm">StepMania のみ</option>
+            <option value="jb">jubeat のみ</option>
+          </optgroup>
+          <optgroup label="16:9（横長）">
+            <option value="w_sjs">StepMania＋jubeat＋StepMania</option>
+            <option value="w_sss">StepMania ×3</option>
+            <option value="w_ssss">StepMania ×4</option>
+          </optgroup>
         </select>
       </div>
       <div>
@@ -698,7 +725,12 @@
         <label for="cvol">クラップの音量</label><input id="cvol" type="range" min="0" max="1" step="0.05" value="0.6">
       </div>
       <div class="checks">
-        <label><input type="checkbox" id="clap" checked> クラップを鳴らす</label><label><input type="checkbox" id="reverse"> Reverse（上から下へ流す）</label><label><input type="checkbox" id="holdShow" checked> ホールドマーカーを表示（jubeat）</label>
+        <label><input type="checkbox" id="reverse"> Reverse（上から下へ流す）</label><label><input type="checkbox" id="holdShow" checked> ホールドマーカーを表示（jubeat）</label>
+      </div>
+      <!-- パネルごとの設定（表示レイアウトのパネル数だけ行ができる。renderSlots() が作る） -->
+      <div class="slotsBox">
+        <label>パネルごとの設定 <small class="muted">「共通」は上の設定、「03と同じ」は 03 譜面オプションに従います</small></label>
+        <div id="slots" class="slots"></div>
       </div>
     </div>
     <p class="hint" id="audioInfo">音源は未選択です。音源がなくても、クラップで譜面のリズムを確認できます。</p>
@@ -718,6 +750,24 @@
       </select>
       <span class="spacer"></span><button id="popout">別ウィンドウで開く</button><button id="fs">全画面</button>
     </div>
+    <!-- 動画の書き出し：再生せずに、全体または小節範囲を .webm にする（exportVideo()） -->
+    <details id="exportBox" class="export">
+      <summary>🎬 動画を書き出す（再生せずに作成）</summary>
+      <div class="expbody">
+        <div class="exprow" role="radiogroup" aria-label="書き出す範囲">
+          <label class="barpick"><input type="radio" name="expRange" id="expAll" checked>最初から最後まで</label>
+          <label class="barpick"><input type="radio" name="expRange" id="expPart">小節<select id="expFrom" aria-label="開始小節"><option>—</option></select>〜<select id="expTo" aria-label="終了小節"><option>—</option></select></label>
+        </div>
+        <div class="exprow">
+          <label class="barpick">サイズ<select id="expSize"><option value="720" selected>720×720</option><option value="1080">1080×1080</option></select></label>
+          <label class="barpick">コマ数<select id="expFps"><option value="30">30fps</option><option value="60" selected>60fps</option></select></label>
+          <button id="expGo" class="primary">書き出す</button><button id="expCancel" disabled>中止</button>
+        </div>
+        <p class="hint" id="expEst">予想サイズ：—</p>
+        <progress id="expBar" max="1" value="0" hidden></progress>
+        <p class="hint" id="expText">今の表示（レイアウト・パネルごとの設定・音量・クラップ）のまま、実際の再生より速く .webm 動画を作ります。サイズは 1:1 なら 720×720 / 1080×1080、16:9 なら 1280×720 / 1920×1080 です。小節を指定すると、開始小節の1拍前から終了小節の終わりまでを書き出します。</p>
+      </div>
+    </details>
     <!-- 再生画面（正方形） -->
     <div id="stage" class="stage">
       <canvas id="pcanvas" aria-label="譜面の再生画面"></canvas>
@@ -1338,7 +1388,11 @@ let sheets = [];
 //   startCtx    … 曲の 0秒 が AudioContext の何秒に当たるか（現在位置 = ctx.currentTime − startCtx）
 //   pos         … 停止中の再生位置（秒）。−1 は1秒の助走
 //   chart       … 再生用に時刻へ変換した譜面（prepareChart() が作る）
-const P = { ctx: null, buf: null, src: null, gain: null, cgain: null, clapBuf: null, claps: [], playing: false, startCtx: 0, pos: -1, chart: null, seeking: false, resume: false, win: null };
+const P = { slotCfg: {}, cache: {}, nCharts: 0, ctx: null, buf: null, src: null, gain: null, cgain: null, clapBuf: null, claps: [], playing: false, startCtx: 0, pos: -1, chart: null, seeking: false, resume: false, win: null };
+// 録画の状態（MediaRecorder・録った断片・音の出口）
+const REC = { rec: null, chunks: [], dest: null, mime: '', t0: 0 };
+// 動画書き出しの状態（書き出し中・中止・実時間録画のときの終了時刻）
+const EXP = { busy: false, cancel: false };
 // 結果欄にメッセージを表示する。02 の入力に関するエラーなら 02 を開く
 function status(s, error = false) {
     $('status').textContent = s;
@@ -1366,6 +1420,7 @@ for (const id of ['secInfo', 'secOpts']) {
 // 入力が変わったら、古い変換結果と再生を破棄する
 function invalidate() {
     pause();
+    stopRec();
     setLocked(true);
     $('playChart').innerHTML = '<option>—</option>';
     $('playChart').disabled = true;
@@ -1494,6 +1549,7 @@ function convertAll() {
 // 01 の入力欄が空のあいだは 02・03・04 をグレーアウトする
 function updateInputLock() {
     const empty = !$('memo').value.trim();
+    $('saveMemo').disabled = empty;
     for (const id of ['secInfo', 'secOpts', 'secConvert']) {
         $(id).classList.toggle('locked', empty);
         $(id).setAttribute('aria-disabled', empty);
@@ -1627,6 +1683,31 @@ $('chartRows').addEventListener('change', () => {
         $('convert').click();
     }
 });
+// 01「.txt で保存」：入力欄の memo テキストをそのまま「曲名.txt」で保存する
+//   曲名は 02 の曲名欄 → memo の先頭から読み取った曲名 → 「memo」の順に使う
+$('saveMemo').onclick = () => {
+    const text = $('memo').value;
+    if (!text.trim()) {
+        return;
+    }
+    let name = $('title').value.trim();
+    if (!name) {
+        try {
+            name = (metadata(splitCharts(text)[0]).title || '').trim();
+        }
+        catch (e) {
+            name = '';
+        }
+    }
+    const blob = new Blob([text.replace(/\r?\n/g, '\r\n')], { type: 'text/plain;charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url;
+    a.download = (name || 'memo').replace(/[\\/:*?"<>|\x00-\x1f]/g, '_') + '.txt';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+};
+// 入力欄が空のあいだは「.txt で保存」を押せないようにする
+const syncSaveMemo = () => { $('saveMemo').disabled = !$('memo').value.trim(); };
+$('memo').addEventListener('input', syncSaveMemo);
 // 「.sm を保存」：ファイル名は「曲名.sm」
 $('download').onclick = () => {
     if (!result) {
@@ -1662,7 +1743,7 @@ $('file').onchange = async (e) => {
 //   開始：BASIC/ADVANCED/EXTREME の行から2行上（曲名）
 //   終了：最後の難易度の行より後にある「不確定度」「最終更新」「〜をウィキ内検索」の行の手前
 //   （1ページに複数の難易度がある場合も、すべてコピーされる）
-$('bookmark').href = 'javascript:' + encodeURIComponent("(()=>{const L=document.body.innerText.replace(/\\r/g,'').split('\\n').map(s=>s.replace(/\\s+$/,''));const d=L.findIndex(s=>/^(BASIC|ADVANCED|EXTREME)$/i.test(s.trim()));let st=-1;if(d>=0){let c=0;st=d;for(let i=d-1;i>=0&&c<2;i--)if(L[i].trim()){st=i;c++;}}else st=L.findIndex(s=>/\\((BSC|ADV|EXT)\\)\\s*$/i.test(s.trim()));if(st<0){alert('譜面が見つかりません');return;}const z=L.reduce((m,s,i)=>/^(BASIC|ADVANCED|EXTREME)$/i.test(s.trim())?i:m,st);let en=L.findIndex((s,i)=>i>z&&/^(不確定度|最終更新|「.*」をウィキ内検索)/.test(s.trim()));if(en<0)en=L.length;const t=L.slice(st,en).join('\\n').replace(/\\n{3,}/g,'\\n\\n').trim()+'\\n';const ok=()=>alert('コピーしました：'+L[st].trim()+'（'+t.split('\\n').length+'行）');const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();document.execCommand('copy');a.remove();ok();};navigator.clipboard?navigator.clipboard.writeText(t).then(ok,fb):fb();})()");
+$('bookmark').href = 'javascript:' + encodeURIComponent("(()=>{const L=document.body.innerText.replace(/\\r/g,'').split('\\n').map(s=>s.replace(/\\s+$/,''));const d=L.findIndex(s=>/^(BASIC|ADVANCED|EXTREME)$/i.test(s.trim()));let st=-1;if(d>=0){let c=0;st=d;for(let i=d-1;i>=0&&c<2;i--)if(L[i].trim()){st=i;c++;}}else st=L.findIndex(s=>/\\((BSC|ADV|EXT)\\)\\s*$/i.test(s.trim()));if(st<0){alert('譜面が見つかりません');return;}const z=L.reduce((m,s,i)=>/^(BASIC|ADVANCED|EXTREME)$/i.test(s.trim())?i:m,st);let en=L.findIndex((s,i)=>i>z&&/^(不確定度|最終更新|「.*」をウィキ内検索)/.test(s.trim()));if(en<0)en=L.length;const t=L.slice(st,en).join('\\n').replace(/\\n{3,}/g,'\\n\\n').trim()+'\\n\\n';const ok=()=>alert('コピーしました：'+L[st].trim()+'（'+t.split('\\n').length+'行）');const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();document.execCommand('copy');a.remove();ok();};navigator.clipboard?navigator.clipboard.writeText(t).then(ok,fb):fb();})()");
 // 「サンプル」：シチュエーション別の短い譜面（動作確認用。すべてこのツール用に作った譜面）
 //   opts … 読み込んだときに合わせて切り替える譜面オプション（それ以外は初期値に戻す）
 const SAMPLES = [
@@ -1777,19 +1858,16 @@ function fmt(t) {
 //   smHolds … フリーズアロー（始点〜終点）
 //   jb      … jubeat 側のノーツ（元のパネル位置。ホールドは end を持つ）
 //   claps   … クラップを鳴らす時刻
-function prepareChart() {
-    if (!result) {
-        P.chart = null;
-        return;
-    }
+// 変換結果 c（rows・parsed・bpmList・offset）から、再生用のデータ（時刻つきノーツ）を作る
+function makePlay(c) {
     const segs = [];
-    result.bpmList.forEach(([beat, bpm], i) => {
+    c.bpmList.forEach(([beat, bpm], i) => {
         const p = segs[i - 1];
         segs.push({ beat, bpm, time: p ? p.time + (beat - p.beat) * 60 / p.bpm : 0 });
     });
-    const tm = { segs, off: result.offset };
+    const tm = { segs, off: c.offset };
     const sm = [], smHolds = [], open = [null, null, null, null];
-    result.rows.forEach((bar, i) => bar.forEach((row, tick) => row.forEach((v, lane) => {
+    c.rows.forEach((bar, i) => bar.forEach((row, tick) => row.forEach((v, lane) => {
         const beat = i * 4 + tick / 48;
         if (v === '1' || v === '2') {
             const n = { beat, lane, q: 48 / gcd(tick % 48, 48), time: b2t(tm, beat) };
@@ -1803,9 +1881,9 @@ function prepareChart() {
             open[lane] = null;
         }
     })));
-    const jb = result.parsed.events.map(e => ({ pos: e.pos, from: e.from, time: b2t(tm, e.beat), end: e.endBeat != null ? b2t(tm, e.endBeat) : null })).sort((a, b) => a.time - b.time);
+    const jb = c.parsed.events.map(e => ({ pos: e.pos, from: e.from, time: b2t(tm, e.beat), end: e.endBeat != null ? b2t(tm, e.endBeat) : null })).sort((a, b) => a.time - b.time);
     const claps = [...new Set(sm.map(n => n.time.toFixed(4)))].map(Number);
-    const bars = result.parsed.bars.map(b => ({ beat: b.startBeat, number: b.number, beats: b.beats }));
+    const bars = c.parsed.bars.map(b => ({ beat: b.startBeat, number: b.number, beats: b.beats }));
     let last = 0;
     for (const n of jb) {
         last = Math.max(last, n.end ?? n.time);
@@ -1816,7 +1894,21 @@ function prepareChart() {
     for (const h of smHolds) {
         last = Math.max(last, h.end);
     }
-    P.chart = { tm, sm, smHolds, jb, holds: jb.filter(n => n.end != null), claps, bars, last };
+    return { tm, sm, smHolds, jb, holds: jb.filter(n => n.end != null), claps, bars, last };
+}
+function prepareChart() {
+    if (!result) {
+        P.chart = null;
+        return;
+    }
+    P.chart = makePlay(result);
+    // パネル用の再生データは作り直す。譜面の数が変わったらパネル設定も初期化する
+    P.cache = {};
+    if (P.nCharts !== result.charts.length) {
+        P.slotCfg = {};
+        P.nCharts = result.charts.length;
+    }
+    renderSlots();
     fillBars();
     fillBarSel();
     if (!P.chart.bars.some(b => b.number === P.anchor)) {
@@ -1863,6 +1955,7 @@ function fillBarSel() {
     if (keep && C.bars.some(b => String(b.number) === keep)) {
         sel.value = keep;
     }
+    fillExportBars();
 }
 // ループ／小節頭から再生 の範囲（秒）
 //   開始 = 選んだ小節の1拍前、終了 = ループ小節数ぶん先の小節の終わり + 0.15秒
@@ -1956,8 +2049,80 @@ function rawNow() {
     return P.playing ? P.ctx.currentTime - P.startCtx : P.pos;
 }
 // 画面に描くときの時刻。スピーカーまでの出力遅延（outputLatency）の分だけ戻して音と見た目を合わせる
+//   録画中は、録る音がスピーカーの手前で取り出されて遅延がないので、戻さない（動画の中で音と絵がそろう）
 function now() {
-    return P.playing ? rawNow() - (P.ctx.outputLatency || 0) : P.pos;
+    return P.playing ? rawNow() - (REC.rec ? 0 : (P.ctx.outputLatency || 0)) : P.pos;
+}
+/* ---------- 実時間の録画（動画書き出しで WebCodecs が使えないときの予備）：canvas の映像と AudioContext の音を MediaRecorder で動画にする ---------- */
+// 使える動画形式を選ぶ：H.264 の mp4（スマホや動画編集ソフトでも開ける）→ webm の順
+function recMime() {
+    const list = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+    return list.find(m => MediaRecorder.isTypeSupported(m)) || '';
+}
+// 録画開始。止まっていれば、今の位置から再生も始める
+function startRec() {
+    const canvas = $('pcanvas');
+    if (!window.MediaRecorder || !canvas.captureStream) {
+        status('このブラウザーは録画（MediaRecorder）に対応していません。Chrome・Edge・Firefox・Safari の最新版で試してください。', true);
+        return;
+    }
+    if (!P.chart) {
+        status('先に「SMに変換」を実行してください。', true);
+        return;
+    }
+    const ctx = actx();
+    REC.dest = ctx.createMediaStreamDestination();
+    P.gain.connect(REC.dest);
+    P.cgain.connect(REC.dest);
+    const stream = new MediaStream([...canvas.captureStream(60).getVideoTracks(), ...REC.dest.stream.getAudioTracks()]);
+    REC.mime = recMime();
+    try {
+        REC.rec = new MediaRecorder(stream, REC.mime ? { mimeType: REC.mime, videoBitsPerSecond: 8000000 } : {});
+    }
+    catch (e) {
+        REC.rec = new MediaRecorder(stream);
+    }
+    REC.chunks = [];
+    REC.rec.ondataavailable = e => { if (e.data && e.data.size) REC.chunks.push(e.data); };
+    REC.rec.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        try { P.gain.disconnect(REC.dest); P.cgain.disconnect(REC.dest); } catch {}
+        const type = (REC.rec.mimeType || REC.mime || 'video/webm').split(';')[0];
+        const blob = new Blob(REC.chunks, { type });
+        REC.rec = null;
+        REC.chunks = [];
+        if (!blob.size) {
+            return;
+        }
+        // ファイル名：「曲名（譜面）.mp4 / .webm」
+        const chart = $('playChart').selectedOptions[0] ? $('playChart').selectedOptions[0].textContent.replace(/^.*→\s*/, '') : '';
+        const name = (($('title').value.trim() || 'jb2sm') + (chart ? '_' + chart : '')).replace(/[\\/:*?"<>|\x00-\x1f]/g, '_');
+        const fixed = REC.name, discard = REC.discard;
+        REC.name = null;
+        REC.discard = false;
+        if (EXP.realtime) {
+            EXP.realtime.done();
+        }
+        if (discard) {
+            return;
+        }
+        const url = URL.createObjectURL(blob), a = document.createElement('a');
+        a.href = url;
+        a.download = fixed ? fixed.replace(/\.webm$/, type.includes('mp4') ? '.mp4' : '.webm') : name + (type.includes('mp4') ? '.mp4' : '.webm');
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    };
+    REC.rec.start(1000);
+    REC.t0 = performance.now();
+    if (!P.playing) {
+        play();
+    }
+}
+// 録画停止（範囲の終わり・停止ボタン・中止）。保存は onstop で行う
+function stopRec() {
+    if (REC.rec && REC.rec.state !== 'inactive') {
+        REC.rec.stop();
+    }
 }
 // 再生開始。音源と、すべてのクラップを AudioContext の時刻で先に予約する
 //   （画面の描画が重くなってもクラップはずれない）
@@ -1989,8 +2154,8 @@ function play() {
         s.start(when + Math.max(0, -P.pos), Math.max(0, P.pos));
         P.src = s;
     }
-    if ($('clap').checked) {
-        for (const c of P.chart.claps) {
+    {
+        for (const c of clapTimes()) {
             if (c < P.pos) {
                 continue;
             }
@@ -2151,8 +2316,9 @@ function rr(g, x, y, w, h, r) {
 // StepMania 側（4レーン）を描く
 //   ノーツの位置 = 判定線 ± (ノーツの拍 − 現在の拍) × ハイスピード × 矢印サイズ
 //   （拍に比例してスクロールする X-mod。Reverse のときは判定線を下にして向きを逆にする）
-function drawSM(g, x, y, lw, hgt, t, beat) {
-    const C = P.chart, rev = $('reverse').checked, size = lw * 0.86, ppb = +$('hs').value * size, top = y, bot = y + hgt, rec = rev ? bot - lw * 0.7 : top + lw * 0.7, dir = rev ? -1 : 1, W = lw * 4, span = hgt / ppb + 1;
+//   C = 再生データ、o = { hs, rev }（パネルごとのハイスピード・Reverse）
+function drawSM(g, x, y, lw, hgt, t, beat, C, o) {
+    const rev = o.rev, size = lw * 0.86, ppb = o.hs * size, top = y, bot = y + hgt, rec = rev ? bot - lw * 0.7 : top + lw * 0.7, dir = rev ? -1 : 1, W = lw * 4, span = hgt / ppb + 1;
     g.save();
     rr(g, x, top, W, hgt, 6);
     g.clip();
@@ -2221,8 +2387,9 @@ function drawSM(g, x, y, lw, hgt, t, beat) {
 }
 // jubeat 側（4×4パネル）を描く
 //   ノーツの L 秒前からマーカーがパネル中央に現れて広がり、判定の瞬間に白く光る
-function drawJB(g, x, y, s, t) {
-    const C = P.chart, L = +$('jbt').value, gap = s * 0.035, c = (s - gap * 5) / 4, cell = i => [x + gap + (i % 4) * (c + gap), y + gap + Math.floor(i / 4) * (c + gap)], R = c * .07;
+//   C = 再生データ、o = { holdShow }（パネルごとのホールドマーカー表示）
+function drawJB(g, x, y, s, t, C, o) {
+    const L = +$('jbt').value, gap = s * 0.035, c = (s - gap * 5) / 4, cell = i => [x + gap + (i % 4) * (c + gap), y + gap + Math.floor(i / 4) * (c + gap)], R = c * .07;
     g.fillStyle = '#000';
     rr(g, x, y, s, s, s * .02);
     g.fill();
@@ -2247,7 +2414,7 @@ function drawJB(g, x, y, s, t) {
     //   矢印のあるパネル（from）から始点パネルまでラインを引き、三角のマーカーがライン上を始点パネルへ進む。
     //   マーカーが始点パネルに届いた瞬間が終点（離すタイミング）。ラインは判定の L 秒前から表示する。
     //   「ホールドマーカーを表示」がオフのときは描かない（H キーでも切り替え）
-    for (const n of $('holdShow').checked ? C.holds : []) {
+    for (const n of o.holdShow ? C.holds : []) {
         if (t < n.time - L || t >= n.end) {
             continue;
         }
@@ -2347,10 +2514,232 @@ function drawJB(g, x, y, s, t) {
         g.restore();
     }
 }
-// 1フレーム描画する。画面は常に正方形（ウィンドウの短辺に合わせて中央に配置）
+/* ---------- 再生画面のレイアウトと「パネル」 ----------
+   1:1（正方形）… StepMania＋jubeat／その左右逆／StepMania のみ／jubeat のみ
+   16:9（横長）… StepMania・jubeat・StepMania／StepMania ×3／StepMania ×4
+   パネルごとに、譜面（難易度）・ハイスピード・Reverse・変換オプション（ホールド・縦連・同時押し）を選べる。
+   「共通」「03と同じ」は、再生欄・03 譜面オプションの設定に従う。 */
+const LAYOUTS = {
+    both: { wide: false, slots: ['sm', 'jb'] },
+    bothR: { wide: false, slots: ['jb', 'sm'] },
+    sm: { wide: false, slots: ['sm'] },
+    jb: { wide: false, slots: ['jb'] },
+    w_sjs: { wide: true, slots: ['sm', 'jb', 'sm'] },
+    w_sss: { wide: true, slots: ['sm', 'sm', 'sm'] },
+    w_ssss: { wide: true, slots: ['sm', 'sm', 'sm', 'sm'] }
+};
+const curLayout = () => LAYOUTS[$('view').value] || LAYOUTS.both;
+// 今のレイアウトのパネル設定（レイアウトごとに覚えておく）
+function slotCfgs() {
+    const key = $('view').value, L = curLayout(), n = result ? result.charts.length : 1;
+    if (!P.slotCfg[key]) {
+        P.slotCfg[key] = L.slots.map((type, i) => ({
+            type,
+            // StepMania を複数並べるレイアウトでは、難易度が複数あれば左から順に別の難易度を割り当てる
+            chart: (key === 'w_sss' || key === 'w_ssss') && n > 1 && i < n ? String(i) : 'main',
+            hs: '', rev: '', jbhold: '', jack: '', chord: '', hold: '',
+            // クラップは最初の StepMania パネルだけオン
+            clap: type === 'sm' && L.slots.indexOf('sm') === i ? '1' : '0'
+        }));
+    }
+    return P.slotCfg[key];
+}
+const slotChartIndex = cfg => (cfg.chart === 'main' || !result || +cfg.chart >= result.charts.length) ? (result ? result.sel || 0 : 0) : +cfg.chart;
+// パネルで使う変換オプション（パネルの指定 → 03 の設定）
+const slotConv = cfg => ({ jbhold: cfg.jbhold || $('jbhold').value, jack: cfg.jack || $('jack').value, chord: cfg.chord || $('chord').value });
+// パネルの再生用データ。03 と同じ変換なら変換済みのものを使い、違えばその設定で作り直して覚えておく
+function slotChart(cfg) {
+    const k = slotChartIndex(cfg), conv = slotConv(cfg);
+    const same = cfg.type === 'jb' || (conv.jbhold === $('jbhold').value && conv.jack === $('jack').value && conv.chord === $('chord').value);
+    const key = k + (same ? '' : '|' + conv.jbhold + '|' + conv.jack + '|' + conv.chord);
+    if (k === (result.sel || 0) && same) {
+        return P.chart;
+    }
+    if (!P.cache[key]) {
+        const c = result.charts[k];
+        let src = c;
+        if (!same) {
+            const info = { ...readInfo(), ...conv, difficulty: c.difficulty, level: c.level, bpms: c.bpmList.map(x => x.join('=')).join(','), holdFirst: $('holdFirst').checked };
+            const b = buildSM(c.parsed, info, mapping());
+            src = { ...c, rows: b.rows, bpmList: b.bpmList, offset: b.offset };
+        }
+        P.cache[key] = makePlay(src);
+    }
+    return P.cache[key];
+}
+// クラップを鳴らす時刻：「クラップ」がオンの StepMania パネルの譜面のノーツ（重なる時刻は1つにまとめる）
+function clapTimes() {
+    if (!result) {
+        return [];
+    }
+    const set = new Set();
+    for (const cfg of slotCfgs()) {
+        if (cfg.type === 'sm' && cfg.clap === '1') {
+            for (const c of slotChart(cfg).claps) {
+                set.add(c.toFixed(4));
+            }
+        }
+    }
+    return [...set].map(Number).sort((a, b) => a - b);
+}
+// パネル上部に出す「難易度・レベル・オプション」
+function slotLabel(cfg) {
+    const c = result.charts[slotChartIndex(cfg)];
+    if (cfg.type === 'jb') {
+        const show = cfg.hold ? cfg.hold === '1' : $('holdShow').checked;
+        return { head: 'jubeat ' + c.name + ' Lv' + (+c.level), opts: show ? '' : 'ホールド非表示' };
+    }
+    const conv = slotConv(cfg), o = slotView(cfg), tags = ['×' + o.hs];
+    if (o.rev) tags.push('REV');
+    if (cfg.clap === '1') tags.push('♪');
+    tags.push({ off: '', taps: '始点終点', on: 'FRZ', force: 'FRZ優先' }[conv.jbhold]);
+    tags.push({ off: '', '16': '縦連16', '24': '縦連24' }[conv.jack]);
+    tags.push({ off: '', edge: '同時←→', center: '同時↑↓', left: '同時←↓', right: '同時↑→' }[conv.chord]);
+    return { head: c.difficulty + ' Lv' + Math.round(+c.level), opts: tags.filter(Boolean).join(' ') };
+}
+// パネルの表示設定（ハイスピード・Reverse・ホールドマーカー）
+const slotView = cfg => ({ hs: cfg.hs ? +cfg.hs : +$('hs').value, rev: cfg.rev ? cfg.rev === '1' : $('reverse').checked, holdShow: cfg.hold ? cfg.hold === '1' : $('holdShow').checked });
+// パネル設定の入力欄を作る（レイアウトを変えたとき・変換し直したとき）
+function renderSlots() {
+    const box = $('slots'), L = curLayout(), cfgs = slotCfgs();
+    $('stage').classList.toggle('wide', L.wide);
+    for (const o of $('expSize').options) {
+        o.textContent = L.wide ? Math.round(o.value * 16 / 9) + '×' + o.value : o.value + '×' + o.value;
+    }
+    box.textContent = '';
+    if (!result) {
+        return;
+    }
+    const names = { 1: [''], 2: ['左', '右'], 3: ['左', '中央', '右'], 4: ['1', '2', '3', '4'] }[cfgs.length];
+    const sel = (k, cfg, list) => {
+        const s = document.createElement('select');
+        s.dataset.k = k;
+        for (const [v, t] of list) {
+            const o = document.createElement('option');
+            o.value = v;
+            o.textContent = t;
+            s.append(o);
+        }
+        s.value = cfg[k];
+        s.onchange = () => {
+            cfg[k] = s.value;
+            restart();   // クラップの予約をやり直す
+            updateExpEstimate();
+        };
+        return s;
+    };
+    const charts = [['main', '再生する譜面'], ...result.charts.map((c, i) => [String(i), c.name + ' → ' + c.difficulty + ' Lv' + Math.round(+c.level)])];
+    cfgs.forEach((cfg, i) => {
+        const row = document.createElement('div');
+        row.className = 'slot';
+        const nm = document.createElement('b');
+        nm.textContent = (names[i] ? names[i] + '：' : '') + (cfg.type === 'jb' ? 'jubeat' : 'StepMania');
+        row.append(nm);
+        const add = (label, el) => {
+            const lb = document.createElement('label');
+            lb.className = 'barpick';
+            lb.append(label, el);
+            row.append(lb);
+        };
+        add('譜面', sel('chart', cfg, charts));
+        if (cfg.type === 'jb') {
+            add('ホールドマーカー', sel('hold', cfg, [['', '共通'], ['1', '表示'], ['0', '非表示']]));
+        }
+        else {
+            add('HS', sel('hs', cfg, [['', '共通'], ...[1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 8].map(v => [String(v), '×' + v])]));
+            add('Reverse', sel('rev', cfg, [['', '共通'], ['1', 'オン'], ['0', 'オフ']]));
+            add('クラップ', sel('clap', cfg, [['1', 'オン'], ['0', 'オフ']]));
+            add('ホールド', sel('jbhold', cfg, [['', '03と同じ'], ['off', '始点だけ'], ['taps', '始点と終点'], ['on', 'フリーズ'], ['force', 'フリーズ優先']]));
+            add('縦連', sel('jack', cfg, [['', '03と同じ'], ['off', 'オフ'], ['16', '16分以下'], ['24', '24分以下']]));
+            add('同時押し', sel('chord', cfg, [['', '03と同じ'], ['off', 'オフ'], ['edge', '←→優先'], ['center', '↑↓優先'], ['left', '←↓優先'], ['right', '↑→優先']]));
+        }
+        box.append(row);
+    });
+}
+// 上部の情報：「曲名 / アーティスト」、2行目に「BPM（変化があれば 180-200）・小節（今 / 全体）・時間（今 / 全体）」
+function drawHeader(g, C, t, beat, pad, fs, cw, FW) {
+    const title = ($('title').value || '').trim(), artist = ($('artist').value || '').trim();
+    // アーティスト名が20文字以上なら小さく。全体が入らなければ全体を縮める
+    let k = 1;
+    const fT = () => '600 ' + fs * 1.15 * k + 'px system-ui,sans-serif', fA = () => fs * (artist.length >= 20 ? .78 : 1) * k + 'px system-ui,sans-serif';
+    const width = () => {
+        g.font = fT();
+        let wd = g.measureText(title).width;
+        if (artist) {
+            g.font = fA();
+            wd += g.measureText(' / ' + artist).width;
+        }
+        return wd;
+    };
+    while (k > .55 && width() > cw) {
+        k -= .05;
+    }
+    g.textBaseline = 'alphabetic';
+    g.textAlign = 'left';
+    const y1 = pad + fs * 1.2;
+    g.font = fT();
+    g.fillStyle = '#f3f5f9';
+    g.fillText(title, pad, y1, cw);
+    if (artist) {
+        const tw = g.measureText(title).width;
+        g.font = fA();
+        g.fillStyle = '#b9c3d3';
+        g.fillText(' / ' + artist, pad + tw, y1, Math.max(10, cw - tw));
+    }
+    const bpms = C.tm.segs.map(s => s.bpm), lo = Math.min(...bpms), hi = Math.max(...bpms);
+    const bar = barAt(beat), last = C.bars[C.bars.length - 1];
+    const parts = [['BPM ' + (lo === hi ? lo : lo + '-' + hi), '#ff9d2e'], ['小節 ' + (beat < 0 ? '--' : bar.number) + ' / ' + last.number, '#ff9d2e'], [fmt(t) + ' / ' + fmt(duration()), '#f3f5f9']];
+    let f2 = fs * .95;
+    const gap = () => f2 * 1.6, total = () => {
+        g.font = '600 ' + f2 + 'px monospace';
+        return parts.reduce((s, p) => s + g.measureText(p[0]).width, 0) + gap() * (parts.length - 1);
+    };
+    while (f2 > 6 && total() > cw) {
+        f2 *= .92;
+    }
+    let x = pad;
+    const y2 = pad + fs * 2.6;
+    for (const [txt, col] of parts) {
+        g.fillStyle = col;
+        g.fillText(txt, x, y2);
+        x += g.measureText(txt).width + gap();
+    }
+}
+// パネルの横位置と幅を決める
+function slotRects(L, cfgs, x0, cw, ph) {
+    const n = cfgs.length;
+    if (!L.wide) {
+        if (n === 1) {
+            return [{ x: x0, w: cw }];
+        }
+        const smW = cw * .34, gp = cw * .035, jbW = cw - smW - gp, out = [];
+        let x = x0;
+        for (const c of cfgs) {
+            const w = c.type === 'sm' ? smW : jbW;
+            out.push({ x, w });
+            x += w + gp;
+        }
+        return out;
+    }
+    const gp = cw * .025;
+    if (cfgs.some(c => c.type === 'jb')) {
+        const jbW = Math.min(ph, cw * .4), smW = (cw - jbW - gp * 2) / 2, out = [];
+        let x = x0;
+        for (const c of cfgs) {
+            const w = c.type === 'jb' ? jbW : smW;
+            out.push({ x, w });
+            x += w + gp;
+        }
+        return out;
+    }
+    const w = (cw - gp * (n - 1)) / n;
+    return cfgs.map((c, i) => ({ x: x0 + i * (w + gp), w }));
+}
+// 1フレーム描画する。画面は 1:1 か 16:9（ウィンドウに合わせて中央に配置）
 //   上部：曲名・時刻・小節・BPM などの情報、下部：表示モードに応じて SM / jubeat を並べる
-function renderTo(canvas) {
-    const win = canvas.ownerDocument.defaultView, dpr = win.devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+//   opt = { w, h, t } のときは、画面に置いていない canvas に w×h で、時刻 t の画面を描く（動画の書き出し用）
+function renderTo(canvas, opt) {
+    const win = canvas.ownerDocument.defaultView, dpr = opt ? 1 : (win.devicePixelRatio || 1), w = opt ? opt.w : canvas.clientWidth, h = opt ? opt.h : canvas.clientHeight;
     if (!w || !h) {
         return;
     }
@@ -2363,18 +2752,25 @@ function renderTo(canvas) {
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.fillStyle = '#000';
     g.fillRect(0, 0, w, h);
-    const S = Math.min(w, h);
-    g.translate((w - S) / 2, (h - S) / 2);
-    const bz = g.createLinearGradient(0, 0, 0, S);
+    // 画面の形（1:1 / 16:9）に合わせて、中央に枠を置く
+    const L = curLayout(), A = L.wide ? 16 / 9 : 1;
+    let FW = w, FH = w / A;
+    if (FH > h) {
+        FH = h;
+        FW = h * A;
+    }
+    g.translate((w - FW) / 2, (h - FH) / 2);
+    const S = FH;
+    const bz = g.createLinearGradient(0, 0, 0, FH);
     bz.addColorStop(0, '#3a404b');
     bz.addColorStop(.5, '#1a1e25');
     bz.addColorStop(1, '#2a2f38');
     g.fillStyle = bz;
-    rr(g, 0, 0, S, S, S * .035);
+    rr(g, 0, 0, FW, FH, S * .035);
     g.fill();
     const inset = S * .022;
     g.fillStyle = '#04060a';
-    rr(g, inset, inset, S - 2 * inset, S - 2 * inset, S * .022);
+    rr(g, inset, inset, FW - 2 * inset, FH - 2 * inset, S * .022);
     g.fill();
     const pad = S * .04, fs = Math.max(10, S * .024), hh = Math.max(S * .085, fs * 3.4);   // 小さい画面では文字が最小10pxなので、見出しの高さを文字に合わせる
     if (!P.chart) {
@@ -2382,57 +2778,52 @@ function renderTo(canvas) {
         g.font = Math.max(12, S * .028) + 'px system-ui,sans-serif';
         g.textAlign = 'center';
         g.textBaseline = 'middle';
-        g.fillText('「SMに変換」を実行すると再生できます', S / 2, S / 2);
+        g.fillText('「SMに変換」を実行すると再生できます', FW / 2, FH / 2);
         return;
     }
-    const C = P.chart, t = now(), beat = t2b(C.tm, t), mode = $('view').value, x0 = pad, y0 = pad + hh, cw = S - 2 * pad, ch = S - 2 * pad - hh;
-    const bar = barAt(beat);
-    let bpm = C.tm.segs[0].bpm;
-    for (const s of C.tm.segs)
-        if (s.beat <= beat) {
-            bpm = s.bpm;
-        }
-    g.textBaseline = 'alphabetic';
-    g.textAlign = 'left';
-    g.fillStyle = '#f3f5f9';
-    g.font = '600 ' + fs * 1.15 + 'px system-ui,sans-serif';
-    const title = ($('title').value || '').trim();
-    g.fillText(title.length > 28 ? title.slice(0, 27) + '…' : title, pad, pad + fs * 1.2);
-    g.fillStyle = '#ff9d2e';
-    g.font = fs * .85 + 'px monospace';
-    // 小さい画面（スマホ）で幅に収まらないときは、短い表記にしてから文字を縮める
-    const barTxt = (beat < 0 ? '--' : bar.number) + (bar.beats !== 4 && beat >= 0 ? ' (' + bar.beats + '拍)' : '');
-    let hud = 'BAR ' + barTxt + '   BPM ' + bpm + '   HS ×' + $('hs').value + '   OFFSET ' + Number(C.tm.off).toFixed(3) + ($('reverse').checked ? '   REVERSE' : '');
-    if (g.measureText(hud).width > cw) {
-        hud = 'BAR ' + barTxt + ' BPM' + bpm + ' ×' + $('hs').value + ' OFS ' + Number(C.tm.off).toFixed(3) + ($('reverse').checked ? ' REV' : '');
-    }
-    const hw = g.measureText(hud).width, maxw = cw;
-    if (hw > maxw) {
-        g.font = Math.max(6, fs * .85 * maxw / hw) + 'px monospace';
-    }
-    g.fillText(hud, pad, pad + fs * 2.55);
-    g.textAlign = 'right';
-    g.fillStyle = '#f3f5f9';
-    g.font = '600 ' + fs * 1.3 + 'px monospace';
-    g.fillText(fmt(t), S - pad, pad + fs * 1.25);
+    const C = P.chart, t = opt ? opt.t : now(), beat = t2b(C.tm, t), x0 = pad, y0 = pad + hh, cw = FW - 2 * pad, ch = FH - 2 * pad - hh;
+    drawHeader(g, C, t, beat, pad, fs, cw, FW);
     const prog = Math.max(0, Math.min(1, t / Math.max(1, duration())));
     g.fillStyle = '#1b212b';
     g.fillRect(pad, pad + hh - fs * .55, cw, 3);
     g.fillStyle = '#ff9d2e';
     g.fillRect(pad, pad + hh - fs * .55, cw * prog, 3);
-    if (mode === 'sm') {
-        const lw = Math.min(cw, ch * .62) / 4;
-        drawSM(g, x0 + (cw - lw * 4) / 2, y0, lw, ch, t, beat);
-    }
-    else if (mode === 'jb') {
-        const s = Math.min(cw, ch);
-        drawJB(g, x0 + (cw - s) / 2, y0 + (ch - s) / 2, s, t);
-    }
-    else {
-        const lw = cw * .34 / 4, gp = cw * .035, s = Math.min(cw - lw * 4 - gp, ch);
-        drawSM(g, x0, y0, lw, ch, t, beat);
-        drawJB(g, x0 + lw * 4 + gp + (cw - lw * 4 - gp - s) / 2, y0 + (ch - s) / 2, s, t);
-    }
+    // パネル：上に「難易度・レベル・オプション」、その下に譜面
+    const cfgs = slotCfgs(), lh = fs * 1.55, py = y0 + lh, ph = ch - lh, rects = slotRects(L, cfgs, x0, cw, ph);
+    cfgs.forEach((cfg, i) => {
+        const r = rects[i], D = slotChart(cfg), o = slotView(cfg), lab = slotLabel(cfg);
+        let px = r.x, pw = r.w;
+        if (cfg.type === 'sm') {
+            const lw = Math.min(r.w, ph * .62) / 4;
+            px = r.x + (r.w - lw * 4) / 2;
+            pw = lw * 4;
+            drawSM(g, px, py, lw, ph, t, t2b(D.tm, t), D, o);
+        }
+        else {
+            const s = Math.min(r.w, ph);
+            px = r.x + (r.w - s) / 2;
+            pw = s;
+            drawJB(g, px, py + (ph - s) / 2, s, t, D, o);
+        }
+        // ラベル（幅に入らなければ縮める）
+        let f = fs * .92;
+        const txt = lab.head + (lab.opts ? '  ' + lab.opts : ''), lw2 = Math.max(pw, Math.min(r.w, pw * 1.6));
+        g.font = '600 ' + f + 'px system-ui,sans-serif';
+        while (f > 6 && g.measureText(txt).width > lw2) {
+            f *= .92;
+            g.font = '600 ' + f + 'px system-ui,sans-serif';
+        }
+        g.textAlign = 'center';
+        g.textBaseline = 'alphabetic';
+        const cx = px + pw / 2, hw = g.measureText(lab.head).width, ow = lab.opts ? g.measureText('  ' + lab.opts).width : 0, sx = cx - (hw + ow) / 2;
+        g.textAlign = 'left';
+        g.fillStyle = '#f3f5f9';
+        g.fillText(lab.head, sx, y0 + lh * .72);
+        if (lab.opts) {
+            g.fillStyle = '#8fd65a';
+            g.fillText('  ' + lab.opts, sx + hw, y0 + lh * .72);
+        }
+    });
 }
 // 毎フレームの更新：ループの折り返し、小節表示の追従、曲の終わりで停止、シークバーの更新
 function tick() {
@@ -2453,6 +2844,11 @@ function tick() {
     if (P.playing && rawNow() > duration() + 0.3) {
         pause();
         P.pos = duration();
+        stopRec();   // 実時間の書き出し中なら、曲の終わりで止めて保存する
+    }
+    if (EXP.realtime && P.playing && now() >= EXP.realtime.end) {
+        pause();
+        stopRec();   // 実時間の書き出し：範囲の終わりで止めて保存
     }
     if (!P.seeking) {
         $('seek').value = now();
@@ -2506,6 +2902,7 @@ async function loadAudio(f) {
         P.buf = buf;
         P.pos = -1;
         $('seek').max = buf.duration.toFixed(2);
+        updateExpEstimate();
         $('audioInfo').textContent = '音源：' + f.name + '（' + fmt(buf.duration) + '）';
         setMusicName(f.name);
     }
@@ -2525,8 +2922,370 @@ $('audio').onchange = e => {
 $('play').onclick = togglePlay;
 $('stop').onclick = () => {
     pause();
+    stopRec();
     P.pos = -1;
 };
+/* ==========================================================================
+   動画の書き出し（再生せずに作る）
+   - 再生画面を1コマずつ描いて VideoEncoder（WebCodecs）で VP9/VP8 に圧縮
+   - 音は OfflineAudioContext で「音源＋クラップ」を一気に合成して AudioEncoder で Opus に圧縮
+   - 2つを自前の小さな WebM 書き出し（makeWebM）で1つの .webm にまとめる
+   WebCodecs が使えないブラウザーでは、音を鳴らさずに実時間で録画する方式（MediaRecorder）に切り替える
+   ========================================================================== */
+// 書き出す範囲（秒）。全体 = 曲頭の1秒前〜曲の終わり、小節指定 = 開始小節の1拍前〜終了小節の終わり＋0.5秒
+function exportRange() {
+    const C = P.chart;
+    if ($('expAll').checked) {
+        return { start: -1, end: duration(), label: '' };
+    }
+    let a = C.bars.findIndex(b => String(b.number) === $('expFrom').value), z = C.bars.findIndex(b => String(b.number) === $('expTo').value);
+    if (a < 0) a = 0;
+    if (z < 0) z = C.bars.length - 1;
+    if (z < a) [a, z] = [z, a];
+    const A = C.bars[a], Z = C.bars[z];
+    return { start: b2t(C.tm, A.beat - 1), end: Math.min(duration() + 0.5, b2t(C.tm, Z.beat + Z.beats) + 0.5), label: '_' + A.number + '-' + Z.number + '小節' };
+}
+// 予想ファイルサイズ：映像の目標ビットレート＋音（128kbps）× 長さ。
+//   VP9 は動きの少ない場面で目標より小さくなるので、目安として「約 6割〜最大」で表示する
+function expBitrate(size) {
+    const width = curLayout().wide ? Math.round(size * 16 / 9 / 2) * 2 : size;
+    return { width, height: size, bitrate: (size >= 1080 ? 6000000 : 4000000) * (width / size) * (+$('expFps').value >= 60 ? 1 : .7) };
+}
+function updateExpEstimate() {
+    if (!P.chart) {
+        $('expEst').textContent = '予想サイズ：—';
+        return;
+    }
+    const r = exportRange(), sec = Math.max(0, r.end - r.start), b = expBitrate(+$('expSize').value);
+    const max = (b.bitrate + 128000) * sec / 8 / 1048576;
+    $('expEst').textContent = '予想サイズ：約 ' + (max * .6).toFixed(max < 10 ? 1 : 0) + '〜' + max.toFixed(max < 10 ? 1 : 0) + ' MB（' + b.width + '×' + b.height + '・' + $('expFps').value + 'fps・長さ ' + fmt(sec).replace(/^-/, '') + '）';
+}
+// 書き出し範囲の小節リストを作る（譜面を変換・切り替えたときに呼ぶ）
+function fillExportBars() {
+    const C = P.chart;
+    for (const id of ['expFrom', 'expTo']) {
+        const sel = $(id), keep = sel.value;
+        sel.textContent = '';
+        for (const b of C.bars) {
+            const o = document.createElement('option');
+            o.value = b.number;
+            o.textContent = b.number;
+            sel.append(o);
+        }
+        if (keep && C.bars.some(b => String(b.number) === keep)) {
+            sel.value = keep;
+        }
+        else {
+            sel.value = id === 'expFrom' ? C.bars[0].number : C.bars[C.bars.length - 1].number;
+        }
+    }
+    updateExpEstimate();
+}
+// 動画のファイル名：「曲名_難易度（_開始-終了小節）.webm」
+function exportName(r, ext) {
+    // パネルに出ている譜面の難易度を並べる（例：Beginner-Medium-Hard）。1つだけなら「Hard Lv8」のようにレベルまで
+    const ks = [...new Set(slotCfgs().map(slotChartIndex))], cs = ks.map(k => result.charts[k]);
+    const chart = cs.length === 1 ? cs[0].difficulty + ' Lv' + Math.round(+cs[0].level) : cs.map(c => c.difficulty).join('-');
+    return (($('title').value.trim() || 'jb2sm') + (chart ? '_' + chart : '') + r.label).replace(/[\\/:*?"<>|\x00-\x1f]/g, '_') + '.' + ext;
+}
+function saveBlob(blob, name) {
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+function expProgress(p, text) {
+    $('expBar').value = p;
+    $('expText').textContent = text;
+}
+// 音を合成する：範囲の長さぶんの OfflineAudioContext に、音源（範囲の位置から）とクラップを置いて一気にレンダリング
+async function renderAudio(r) {
+    const sr = 48000, len = Math.max(1, Math.ceil((r.end - r.start) * sr));
+    const oc = new OfflineAudioContext(2, len, sr);
+    if (P.buf) {
+        const g = oc.createGain();
+        g.gain.value = +$('mvol').value;
+        g.connect(oc.destination);
+        const s = oc.createBufferSource();
+        s.buffer = P.buf;
+        s.connect(g);
+        s.start(Math.max(0, -r.start), Math.max(0, r.start));
+    }
+    if (clapTimes().length) {
+        const g = oc.createGain();
+        g.gain.value = +$('cvol').value;
+        g.connect(oc.destination);
+        actx();
+        for (const c of clapTimes()) {
+            if (c < r.start || c >= r.end) {
+                continue;
+            }
+            const s = oc.createBufferSource();
+            s.buffer = P.clapBuf;
+            s.connect(g);
+            s.start(c - r.start);
+        }
+    }
+    return oc.startRendering();
+}
+// VP9 → VP8 の順に、使えるコーデックを探す
+async function pickVideoCodec(width, height, fps, bitrate) {
+    for (const [codec, id] of [['vp09.00.41.08', 'V_VP9'], ['vp09.00.31.08', 'V_VP9'], ['vp8', 'V_VP8']]) {
+        const cfg = { codec, width, height, bitrate, framerate: fps };
+        try {
+            if ((await VideoEncoder.isConfigSupported(cfg)).supported) {
+                return { cfg, id };
+            }
+        }
+        catch {
+        }
+    }
+    return null;
+}
+// 高速書き出し（WebCodecs）
+async function exportFast(r, size, fps) {
+    // 1:1 は size×size、16:9 は（size×16/9）×size
+    const { width, height, bitrate } = expBitrate(size);
+    const vc = await pickVideoCodec(width, height, fps, bitrate);
+    const acfg = { codec: 'opus', sampleRate: 48000, numberOfChannels: 2, bitrate: 128000 };
+    if (!vc || !(await AudioEncoder.isConfigSupported(acfg)).supported) {
+        return false;
+    }
+    // ---- 音 ----
+    expProgress(0, '音を合成しています…');
+    const ab = await renderAudio(r);
+    const aChunks = [];
+    let opusHead = null;
+    const ae = new AudioEncoder({
+        output: (chunk, meta) => {
+            const d = new Uint8Array(chunk.byteLength);
+            chunk.copyTo(d);
+            aChunks.push({ t: chunk.timestamp / 1000, key: true, data: d, track: 2 });
+            if (meta && meta.decoderConfig && meta.decoderConfig.description && !opusHead) {
+                opusHead = new Uint8Array(meta.decoderConfig.description.buffer || meta.decoderConfig.description);
+            }
+        },
+        error: e => { throw e; }
+    });
+    ae.configure(acfg);
+    const L = ab.getChannelData(0), R = ab.numberOfChannels > 1 ? ab.getChannelData(1) : L, step = 4800;
+    for (let i = 0; i < ab.length; i += step) {
+        const n = Math.min(step, ab.length - i), buf = new Float32Array(n * 2);
+        buf.set(L.subarray(i, i + n), 0);
+        buf.set(R.subarray(i, i + n), n);
+        const data = new AudioData({ format: 'f32-planar', sampleRate: 48000, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(i / 48 * 1000), data: buf });
+        ae.encode(data);
+        data.close();
+    }
+    await ae.flush();
+    ae.close();
+    // ---- 映像 ----
+    const vChunks = [];
+    const ve = new VideoEncoder({
+        output: chunk => {
+            const d = new Uint8Array(chunk.byteLength);
+            chunk.copyTo(d);
+            vChunks.push({ t: chunk.timestamp / 1000, key: chunk.type === 'key', data: d, track: 1 });
+        },
+        error: e => { throw e; }
+    });
+    ve.configure(vc.cfg);
+    const cv = document.createElement('canvas');
+    cv.width = width;
+    cv.height = height;
+    const frames = Math.ceil((r.end - r.start) * fps);
+    const t0 = performance.now();
+    for (let i = 0; i < frames; i++) {
+        if (EXP.cancel) {
+            ve.close();
+            return 'cancel';
+        }
+        renderTo(cv, { w: width, h: height, t: r.start + i / fps });
+        const fr = new VideoFrame(cv, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
+        ve.encode(fr, { keyFrame: i % (fps * 2) === 0 });
+        fr.close();
+        while (ve.encodeQueueSize > 6) {
+            await new Promise(res => setTimeout(res, 1));
+        }
+        if (i % 15 === 0) {
+            const el = (performance.now() - t0) / 1000, rest = el / (i + 1) * (frames - i - 1);
+            expProgress((i + 1) / frames, '映像を作っています… ' + (i + 1) + ' / ' + frames + ' コマ（残り約 ' + Math.ceil(rest) + ' 秒）');
+            await new Promise(res => setTimeout(res, 0));
+        }
+    }
+    await ve.flush();
+    ve.close();
+    expProgress(1, 'ファイルにまとめています…');
+    const blob = makeWebM({ width, height, codecId: vc.id, duration: frames * 1000 / fps, opusHead, chunks: [...vChunks, ...aChunks] });
+    saveBlob(blob, exportName(r, 'webm'));
+    return blob;
+}
+// 実時間の録画（WebCodecs が使えないとき）：スピーカーから音を出さずに、範囲を再生して MediaRecorder で録る
+function exportRealtime(r) {
+    return new Promise(resolve => {
+        const ctx = actx();
+        const loopWas = $('loop').checked;
+        $('loop').checked = false;
+        try { P.gain.disconnect(ctx.destination); P.cgain.disconnect(ctx.destination); } catch {}
+        pause();
+        P.pos = r.start;
+        EXP.realtime = { end: r.end, done: () => {
+            P.gain.connect(ctx.destination);
+            P.cgain.connect(ctx.destination);
+            $('loop').checked = loopWas;
+            EXP.realtime = null;
+            resolve(true);
+        } };
+        REC.name = exportName(r, 'webm');
+        startRec();
+    });
+}
+// 「動画を書き出す」ボタン
+async function exportVideo() {
+    if (EXP.busy || !P.chart) {
+        return;
+    }
+    if (REC.rec) {
+        stopRec();
+    }
+    const r = exportRange(), size = +$('expSize').value, fps = +$('expFps').value;
+    EXP.busy = true;
+    EXP.cancel = false;
+    $('expGo').disabled = true;
+    $('expCancel').disabled = false;
+    $('expBar').hidden = false;
+    pause();
+    try {
+        let res = false;
+        if (window.VideoEncoder && window.AudioEncoder && window.VideoFrame && window.OfflineAudioContext) {
+            res = await exportFast(r, size, fps);
+        }
+        if (res === 'cancel') {
+            expProgress(0, '書き出しを中止しました。');
+        }
+        else if (res) {
+            expProgress(1, '保存しました：' + exportName(r, 'webm') + '（' + (res.size / 1048576).toFixed(1) + 'MB、' + fmt(r.end - r.start).replace(/^-/, '') + '）');
+        }
+        else {
+            expProgress(0, 'このブラウザーは高速書き出し（WebCodecs）に対応していないため、音を鳴らさずに実時間で録画しています…');
+            await exportRealtime(r);
+            expProgress(1, EXP.cancel ? '書き出しを中止しました。' : '保存しました（実時間で録画）。');
+        }
+    }
+    catch (e) {
+        console.error(e);
+        expProgress(0, '書き出しに失敗しました：' + e.message);
+    }
+    EXP.busy = false;
+    $('expGo').disabled = false;
+    $('expCancel').disabled = true;
+}
+/* ---------- 小さな WebM（Matroska）書き出し ----------
+   EBML：要素 = ID + サイズ（可変長整数）+ 中身。映像キーフレームごとに Cluster を作り、SimpleBlock で詰める。
+   シーク用に SeekHead と Cues（キーフレームの位置）も書く。 */
+function makeWebM({ width, height, codecId, duration, opusHead, chunks }) {
+    const enc = new TextEncoder();
+    const cat = parts => {
+        let n = 0;
+        for (const p of parts) n += p.length;
+        const out = new Uint8Array(n);
+        let o = 0;
+        for (const p of parts) { out.set(p, o); o += p.length; }
+        return out;
+    };
+    const idBytes = id => { const b = []; while (id > 0) { b.unshift(id & 255); id = Math.floor(id / 256); } return Uint8Array.from(b); };
+    const sizeBytes = (n, fixed) => {
+        let len = fixed || 1;
+        if (!fixed) while (n >= 2 ** (7 * len) - 1) len++;
+        const b = new Uint8Array(len);
+        let v = n;
+        for (let i = len - 1; i >= 0; i--) { b[i] = v % 256; v = Math.floor(v / 256); }
+        b[0] |= 1 << (8 - len);
+        return b;
+    };
+    const el = (id, data) => cat([idBytes(id), sizeBytes(data.length), data]);
+    const uint = (id, v, width) => {
+        const b = [];
+        do { b.unshift(v % 256); v = Math.floor(v / 256); } while (v > 0);
+        while (width && b.length < width) b.unshift(0);
+        return el(id, Uint8Array.from(b));
+    };
+    const flt = (id, v) => { const b = new Uint8Array(8); new DataView(b.buffer).setFloat64(0, v); return el(id, b); };
+    const str = (id, s) => el(id, enc.encode(s));
+    const master = (id, kids) => el(id, cat(kids));
+    if (!opusHead || opusHead.length < 19 || String.fromCharCode(...opusHead.slice(0, 8)) !== 'OpusHead') {
+        // Opus の初期化データ（OpusHead）。エンコーダーがくれないときは自分で作る
+        opusHead = new Uint8Array(19);
+        opusHead.set(enc.encode('OpusHead'), 0);
+        const dv = new DataView(opusHead.buffer);
+        dv.setUint8(8, 1);
+        dv.setUint8(9, 2);
+        dv.setUint16(10, 312, true);
+        dv.setUint32(12, 48000, true);
+    }
+    const preSkip = new DataView(opusHead.buffer, opusHead.byteOffset).getUint16(10, true);
+    const header = master(0x1A45DFA3, [uint(0x4286, 1), uint(0x42F7, 1), uint(0x42F2, 4), uint(0x42F3, 8), str(0x4282, 'webm'), uint(0x4287, 4), uint(0x4285, 2)]);
+    const info = master(0x1549A966, [uint(0x2AD7B1, 1000000), str(0x4D80, 'jb2SM'), str(0x5741, 'jb2SM'), flt(0x4489, duration)]);
+    const tracks = master(0x1654AE6B, [
+        master(0xAE, [uint(0xD7, 1), uint(0x73C5, 1), uint(0x83, 1), str(0x86, codecId), master(0xE0, [uint(0xB0, width), uint(0xBA, height)])]),
+        master(0xAE, [uint(0xD7, 2), uint(0x73C5, 2), uint(0x83, 2), str(0x86, 'A_OPUS'), el(0x63A2, opusHead), uint(0x56AA, Math.round(preSkip / 48000 * 1e9)), uint(0x56BB, 80000000), master(0xE1, [flt(0xB5, 48000), uint(0x9F, 2)])])
+    ]);
+    // 時刻順に並べ、映像キーフレームで Cluster を区切る
+    chunks.sort((a, b) => a.t - b.t || a.track - b.track);
+    const clusters = [], cues = [];
+    let cur = null;
+    const flush = () => { if (cur) clusters.push(cur); };
+    for (const c of chunks) {
+        const t = Math.round(c.t);
+        if (!cur || (c.track === 1 && c.key) || t - cur.t > 30000) {
+            flush();
+            cur = { t, blocks: [], cue: c.track === 1 && c.key };
+        }
+        const head = new Uint8Array(4);
+        head[0] = 0x80 | c.track;
+        new DataView(head.buffer).setInt16(1, t - cur.t);
+        head[3] = c.key ? 0x80 : 0;
+        cur.blocks.push(el(0xA3, cat([head, c.data])));
+    }
+    flush();
+    const clusterBytes = clusters.map(cl => master(0x1F43B675, [uint(0xE7, cl.t), ...cl.blocks]));
+    // SeekHead の位置は固定長（8バイト）で書くので、先に長さを決められる
+    const seekHead = (pInfo, pTracks, pCues) => master(0x114D9B74, [
+        master(0x4DBB, [el(0x53AB, idBytes(0x1549A966)), uint(0x53AC, pInfo, 8)]),
+        master(0x4DBB, [el(0x53AB, idBytes(0x1654AE6B)), uint(0x53AC, pTracks, 8)]),
+        master(0x4DBB, [el(0x53AB, idBytes(0x1C53BB6B)), uint(0x53AC, pCues, 8)])
+    ]);
+    const shLen = seekHead(0, 0, 0).length;
+    let pos = shLen + info.length + tracks.length;
+    clusters.forEach((cl, i) => {
+        if (cl.cue) {
+            cues.push(master(0xBB, [uint(0xB3, cl.t), master(0xB7, [uint(0xF7, 1), uint(0xF1, pos)])]));
+        }
+        pos += clusterBytes[i].length;
+    });
+    const cueBytes = master(0x1C53BB6B, cues);
+    const body = cat([seekHead(shLen, shLen + info.length, pos), info, tracks, ...clusterBytes, cueBytes]);
+    const segment = cat([idBytes(0x18538067), sizeBytes(body.length, 8), body]);
+    return new Blob([header, segment], { type: 'video/webm' });
+}
+
+$('expGo').onclick = exportVideo;
+$('expCancel').onclick = () => {
+    EXP.cancel = true;
+    if (EXP.realtime) {
+        REC.discard = true;
+        pause();
+        stopRec();
+    }
+};
+for (const id of ['expFrom', 'expTo']) {
+    $(id).addEventListener('change', () => { $('expPart').checked = true; });
+}
+for (const id of ['expFrom', 'expTo', 'expSize', 'expFps', 'expAll', 'expPart']) {
+    $(id).addEventListener('change', updateExpEstimate);
+}
+
 $('seek').addEventListener('input', () => {
     if (!P.seeking) {
         P.seeking = true;
@@ -2612,7 +3371,6 @@ $('hs').oninput = () => setHS(+$('hs').value);
 $('jbt').oninput = () => $('jbtv').textContent = (+$('jbt').value).toFixed(2) + '秒';
 $('mvol').oninput = applyVol;
 $('cvol').oninput = applyVol;
-$('clap').onchange = restart;
 $('barSel').onchange = () => {
     const C = P.chart;
     if (!C) {
@@ -2632,6 +3390,12 @@ $('jack').onchange = $('chord').onchange = $('jbhold').onchange = $('holdFirst')
     }
 };
 // 再生する譜面（難易度）を切り替える。再生位置はそのまま
+// 表示レイアウトを変えたら、パネル設定の欄と画面の形を切り替える
+$('view').onchange = () => {
+    renderSlots();
+    restart();
+    updateExpEstimate();
+};
 $('playChart').onchange = () => {
     if (!result) {
         return;
